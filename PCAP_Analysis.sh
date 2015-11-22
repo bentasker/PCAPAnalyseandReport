@@ -11,6 +11,7 @@ PCAP="$1"
 TMPDIR="/tmp/pcapanalysis.$$"
 
 mkdir -p "$TMPDIR"
+echo "Starting, using ${TMPDIR} for temp files"
 
 # Grab the low hanging fruit
 echo "Analysing Port 80 Traffic"
@@ -123,5 +124,5 @@ do
 done
 
 
-echo "Done"
+echo "Done- Reports in ${REPORTDIR}"
 # TODO: Once finished testing, need to tidy the tempdirs away
