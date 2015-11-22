@@ -26,27 +26,48 @@ tshark -q -r "$PCAP" -Y "ssl.handshake" -T fields -e frame.time_epoch -e ip.src 
 -e ssl.handshake.extensions_server_name -e ssl.handshake.ciphersuite > "${TMPDIR}/sslrequests.txt"
 
 echo "Identifying HTTPS pages from HTTP Referrers"
-# Now lets see if we can pick out some of the URLs visited on HTTPs sites
-cat "${TMPDIR}/sslrequests.txt" | awk -F '	' '{print $6}' | sort | uniq | while read -r sslhost
-do
+# Now lets see if we can pick out some of the URLs visited on HTTPs sites. Disabled (and replaced) for PAS-2
+#cat "${TMPDIR}/sslrequests.txt" | awk -F '	' '{print $6}' | sort | uniq | while read -r sslhost
+#do
+#
+#      if [ "$sslhost" == "" ]
+#      then
+#	    continue
+#      fi
+#
+#      lines=`grep "https://$sslhost" "${TMPDIR}/httpsreferers.txt"`
+#
+#      linecount=`echo -n "${lines}" |wc -l`
+#      if [ "$linecount" == 0 ]
+#      then
+#	  continue
+#      fi
+#
+#      echo "$sslhost" > "${TMPDIR}/site.information.$sslhost"
+#      echo "" >> "${TMPDIR}/site.information.$sslhost"
+#      echo "${lines}" >> "${TMPDIR}/site.information.$sslhost"
+#done
 
-      if [ "$sslhost" == "" ]
-      then
-	    continue
-      fi
+
+# Introduced for PAS-2
+# Extract HTTPS referrers from Port 80 requests and gather identified URL paths
+cat "${TMPDIR}/httprequests.txt" | awk -F '	' '{print $9}' | egrep -o 'https:\/\/([^\/]*)' | sort | uniq | sed 's~https://~~g' | while read -r sslhost
+do
 
       lines=`grep "https://$sslhost" "${TMPDIR}/httpsreferers.txt"`
 
       linecount=`echo -n "${lines}" |wc -l`
       if [ "$linecount" == 0 ]
       then
-	  continue
+	  continue # This should never happen
       fi
 
       echo "$sslhost" > "${TMPDIR}/site.information.$sslhost"
       echo "" >> "${TMPDIR}/site.information.$sslhost"
       echo "${lines}" >> "${TMPDIR}/site.information.$sslhost"
+
 done
+
 
 
 echo "Looking for XMPP traffic"
