@@ -51,10 +51,10 @@ echo "Identifying HTTPS pages from HTTP Referrers"
 
 # Introduced for PAS-2
 # Extract HTTPS referrers from Port 80 requests and gather identified URL paths
-cat "${TMPDIR}/httprequests.txt" | awk -F '	' '{print $9}' | egrep -o 'https:\/\/([^\/]*)' | sort | uniq | sed 's~https://~~g' | while read -r sslhost
+cat "${TMPDIR}/httpsreferers.txt" | awk -F '	' '{print $9}' | egrep -o 'https:\/\/([^\/]*)' | sort | uniq | sed 's~https://~~g' | while read -r sslhost
 do
 
-      lines=`grep "https://$sslhost" "${TMPDIR}/httpsreferers.txt"`
+      lines=`cat "${TMPDIR}/httpsreferers.txt" | awk -F '	' '{print $9}' | grep -n "https://$sslhost"`
 
       linecount=`echo -n "${lines}" |wc -l`
       if [ "$linecount" == 0 ]
@@ -64,7 +64,10 @@ do
 
       echo "$sslhost" > "${TMPDIR}/site.information.$sslhost"
       echo "" >> "${TMPDIR}/site.information.$sslhost"
-      echo "${lines}" >> "${TMPDIR}/site.information.$sslhost"
+      for lineno in `echo "${lines}" | cut -d\: -f1`
+      do
+      		sed -n ${lineno}p "${TMPDIR}/httpsreferers.txt" >> "${TMPDIR}/site.information.$sslhost"
+      done
 
 done
 
