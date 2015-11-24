@@ -41,7 +41,45 @@ line=$1
       -e 's/0xC016/TLS_ECDH_anon_WITH_RC4_128_SHA/gi' \
       -e 's/0xC017/TLS_ECDH_anon_WITH_3DES_EDE_CBC_SHA/gi' \
       -e 's/0xC018/TLS_ECDH_anon_WITH_AES_128_CBC_SHA/gi' \
-      -e 's/0xC019/TLS_ECDH_anon_WITH_AES_256_CBC_SHA/gi'
+      -e 's/0xC019/TLS_ECDH_anon_WITH_AES_256_CBC_SHA/gi' \
+      -e 's/0x0000/TLS_NULL_WITH_NULL_NULL/gi' \
+      -e 's/0x0001/TLS_RSA_WITH_NULL_MD5/gi' \
+      -e 's/0x0002/TLS_RSA_WITH_NULL_SHA/gi' \
+      -e 's/0x003B/TLS_RSA_WITH_NULL_SHA256/gi' \
+      -e 's/0x0004/TLS_RSA_WITH_RC4_128_MD5/gi' \
+      -e 's/0x0005/TLS_RSA_WITH_RC4_128_SHA/gi' \
+      -e 's/0x000A/TLS_RSA_WITH_3DES_EDE_CBC_SHA/gi' \
+      -e 's/0x002F/TLS_RSA_WITH_AES_128_CBC_SHA/gi' \
+      -e 's/0x0035/TLS_RSA_WITH_AES_256_CBC_SHA/gi' \
+      -e 's/0x003C/TLS_RSA_WITH_AES_128_CBC_SHA256/gi' \
+      -e 's/0x003D/TLS_RSA_WITH_AES_256_CBC_SHA256/gi' \
+      -e 's/0x000D/TLS_DH_DSS_WITH_3DES_EDE_CBC_SHA/gi' \
+      -e 's/0x0010/TLS_DH_RSA_WITH_3DES_EDE_CBC_SHA/gi' \
+      -e 's/0x0013/TLS_DHE_DSS_WITH_3DES_EDE_CBC_SHA/gi' \
+      -e 's/0x0016/TLS_DHE_RSA_WITH_3DES_EDE_CBC_SHA/gi' \
+      -e 's/0x0030/TLS_DH_DSS_WITH_AES_128_CBC_SHA/gi' \
+      -e 's/0x0031/TLS_DH_RSA_WITH_AES_128_CBC_SHA/gi' \
+      -e 's/0x0032/TLS_DHE_DSS_WITH_AES_128_CBC_SHA/gi' \
+      -e 's/0x0033/TLS_DHE_RSA_WITH_AES_128_CBC_SHA/gi' \
+      -e 's/0x0036/TLS_DH_DSS_WITH_AES_256_CBC_SHA/gi' \
+      -e 's/0x0037/TLS_DH_RSA_WITH_AES_256_CBC_SHA/gi' \
+      -e 's/0x0038/TLS_DHE_DSS_WITH_AES_256_CBC_SHA/gi' \
+      -e 's/0x0039/TLS_DHE_RSA_WITH_AES_256_CBC_SHA/gi' \
+      -e 's/0x003E/TLS_DH_DSS_WITH_AES_128_CBC_SHA256/gi' \
+      -e 's/0x003F/TLS_DH_RSA_WITH_AES_128_CBC_SHA256/gi' \
+      -e 's/0x0040/TLS_DHE_DSS_WITH_AES_128_CBC_SHA256/gi' \
+      -e 's/0x0067/TLS_DHE_RSA_WITH_AES_128_CBC_SHA256/gi' \
+      -e 's/0x0068/TLS_DH_DSS_WITH_AES_256_CBC_SHA256/gi' \
+      -e 's/0x0069/TLS_DH_RSA_WITH_AES_256_CBC_SHA256/gi' \
+      -e 's/0x006A/TLS_DHE_DSS_WITH_AES_256_CBC_SHA256/gi' \
+      -e 's/0x006B/TLS_DHE_RSA_WITH_AES_256_CBC_SHA256/gi' \
+      -e 's/0x0018/TLS_DH_anon_WITH_RC4_128_MD5/gi' \
+      -e 's/0x001B/TLS_DH_anon_WITH_3DES_EDE_CBC_SHA/gi' \
+      -e 's/0x0034/TLS_DH_anon_WITH_AES_128_CBC_SHA/gi' \
+      -e 's/0x003A/TLS_DH_anon_WITH_AES_256_CBC_SHA/gi' \
+      -e 's/0x006C/TLS_DH_anon_WITH_AES_128_CBC_SHA256/gi' \
+      -e 's/0x006D/TLS_DH_anon_WITH_AES_256_CBC_SHA256/gi' 
+
 
 }
 
