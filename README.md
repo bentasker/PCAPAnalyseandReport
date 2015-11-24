@@ -14,3 +14,13 @@ At time of writing the information extracted includes
 
 The script will output a CSV containing port 80 and 443 traffic, as well as several text files containing metadata (Cookies, User-agents etc) extracted from that traffic.
 
+## Project Management/Issue Tracking
+
+Project Management and Issue tracking is performed in a private JIRA instance, a HTML mirror of this project can be seen on [projects.bentasker.co.uk](http://projects.bentasker.co.uk/jira_projects/browse/PAS.html)
+
+
+## Copyright
+
+*Copyright (C) 2015 [B Tasker](https://www.bentasker.co.uk)*
+
+Released under the [GNU GPL V2](https://github.com/bentasker/PCAPAnalyseandReport/blob/master/LICENSE)
