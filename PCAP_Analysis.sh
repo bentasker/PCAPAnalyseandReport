@@ -10,6 +10,48 @@
 PCAP="$1"
 TMPDIR="/tmp/pcapanalysis.$$"
 
+
+
+
+function humanise_ciphers(){
+# Not hugely proud of this function, but it does the job
+line=$1
+
+      echo "$line" | sed -e 's/0xC001/TLS_ECDH_ECDSA_WITH_NULL_SHA/gi' \
+      -e 's/0xC002/TLS_ECDH_ECDSA_WITH_RC4_128_SHA/gi' \
+      -e 's/0xC003/TLS_ECDH_ECDSA_WITH_3DES_EDE_CBC_SHA/gi' \
+      -e 's/0xC004/TLS_ECDH_ECDSA_WITH_AES_128_CBC_SHA/gi' \
+      -e 's/0xC005/TLS_ECDH_ECDSA_WITH_AES_256_CBC_SHA/gi' \
+      -e 's/0xC006/TLS_ECDHE_ECDSA_WITH_NULL_SHA/gi' \
+      -e 's/0xC007/TLS_ECDHE_ECDSA_WITH_RC4_128_SHA/gi' \
+      -e 's/0xC008/TLS_ECDHE_ECDSA_WITH_3DES_EDE_CBC_SHA/gi' \
+      -e 's/0xC009/TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA/gi' \
+      -e 's/0xC00A/TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA/gi' \
+      -e 's/0xC00B/TLS_ECDH_RSA_WITH_NULL_SHA/gi' \
+      -e 's/0xC00C/TLS_ECDH_RSA_WITH_RC4_128_SHA/gi' \
+      -e 's/0xC00D/TLS_ECDH_RSA_WITH_3DES_EDE_CBC_SHA/gi' \
+      -e 's/0xC00E/TLS_ECDH_RSA_WITH_AES_128_CBC_SHA/gi' \
+      -e 's/0xC00F/TLS_ECDH_RSA_WITH_AES_256_CBC_SHA/gi' \
+      -e 's/0xC010/TLS_ECDHE_RSA_WITH_NULL_SHA/gi' \
+      -e 's/0xC011/TLS_ECDHE_RSA_WITH_RC4_128_SHA/gi' \
+      -e 's/0xC012/TLS_ECDHE_RSA_WITH_3DES_EDE_CBC_SHA/gi' \
+      -e 's/0xC013/TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA/gi' \
+      -e 's/0xC014/TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA/gi' \
+      -e 's/0xC015/TLS_ECDH_anon_WITH_NULL_SHA/gi' \
+      -e 's/0xC016/TLS_ECDH_anon_WITH_RC4_128_SHA/gi' \
+      -e 's/0xC017/TLS_ECDH_anon_WITH_3DES_EDE_CBC_SHA/gi' \
+      -e 's/0xC018/TLS_ECDH_anon_WITH_AES_128_CBC_SHA/gi' \
+      -e 's/0xC019/TLS_ECDH_anon_WITH_AES_256_CBC_SHA/gi'
+
+}
+
+
+
+
+
+
+
+
 mkdir -p "$TMPDIR"
 echo "Starting, using ${TMPDIR} for temp files"
 
@@ -97,7 +139,7 @@ do
       srcport=$(echo "$line" | awk -F '	' '{print $4}')
       destport=$(echo "$line" | awk -F '	' '{print $5}')
       sniname=$(echo "$line" | awk -F '	' '{print $6}')
-      ciphersuites=$(echo "$line" | awk -F '	' '{print $7}')
+      ciphersuites=$(humanise_ciphers `echo "$line" | awk -F '	' '{print $7}'`)
       printf "%s\t%s\t%s\t%s\t%s\t%s\t\t\t\t\t\t%s\t%s\n" "$ts" "$srcip" "$destip" "$srcport" \
       "$destport" "$sniname" "$sniname" "$ciphersuites" >> "${REPORTDIR}/webtraffic.csv"
 done
