@@ -86,10 +86,26 @@ REPORTDIR="report.$PCAP.`date +'%s'`"
 mkdir $REPORTDIR
 
 
-cat << EOM > "${REPORTDIR}/webtraffic.csv"
-    `cat ${TMPDIR}/httprequests.txt ${TMPDIR}/sslrequests.txt | sort -n`
+# Build the webtraffic CSV
+echo > "${REPORTDIR}/webtraffic.csv" # Might drop a header row in here later
+cat ${TMPDIR}/httprequests.txt >> "${REPORTDIR}/webtraffic.csv"
+cat ${TMPDIR}/sslrequests.txt | while read -r line
+do
+      ts=$(echo "$line" | awk -F '	' '{print $1}')
+      srcip=$(echo "$line" | awk -F '	' '{print $2}')
+      destip=$(echo "$line" | awk -F '	' '{print $3}')
+      srcport=$(echo "$line" | awk -F '	' '{print $4}')
+      destport=$(echo "$line" | awk -F '	' '{print $5}')
+      sniname=$(echo "$line" | awk -F '	' '{print $6}')
+      ciphersuites=$(echo "$line" | awk -F '	' '{print $7}')
+      printf "%s\t%s\t%s\t%s\t%s\t%s\t\t\t\t\t\t%s\t%s\n" "$ts" "$srcip" "$destip" "$srcport" \
+      "$destport" "$sniname" "$sniname" "$ciphersuites" >> "${REPORTDIR}/webtraffic.csv"
+done
 
-EOM
+# Sort the entries
+sort -n -o "${REPORTDIR}/webtraffic.csv" "${REPORTDIR}/webtraffic.csv"
+
+
 
 
 cat << EOM > "${REPORTDIR}/ssltraffic.txt"
