@@ -45,6 +45,21 @@ Fields are
     Cookie Name, Value
 
 
+observedcredentials.csv
+-------------------------
+
+Contains credentials extracted from plaintext communications. Currently limited to HTTP Basic authentication, but will later be expanded to include SMTP Plain amongst others
+
+Fields are
+
+    AuthType Username Pass Source
+
+For example
+
+    Basic   foo     mypass     HTTP
+
+
+
 observedhttpuseragents.csv
 ----------------------------
 

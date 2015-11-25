@@ -132,7 +132,7 @@ tshark -q -r "$PCAP" -Y "(tcp.flags.syn == 1) && (tcp.flags.ack == 0)" -T fields
 # Grab the low hanging fruit
 echo "Analysing Port 80 Traffic"
 tshark -q -r "$PCAP" -Y "http.host" -T fields $STANDARD_FIELDS \
--e http.host -e http.request.method -e http.request.uri -e http.referer -e http.user_agent -e http.cookie > "${TMPDIR}/httprequests.txt"
+-e http.host -e http.request.method -e http.request.uri -e http.referer -e http.user_agent -e http.cookie -e http.authorization > "${TMPDIR}/httprequests.txt"
 
 # Extract the HTTPs referrers for use later
 grep "https://" "${TMPDIR}/httprequests.txt" > "${TMPDIR}/httpsreferers.txt"
@@ -221,9 +221,10 @@ do
       referer=$(echo "$line" | awk -F '	' '{print $11}')
       useragent=$(echo "$line" | awk -F '	' '{print $12}')
       cookie=$(echo "$line" | awk -F '	' '{print $13}')
+      auth=$(echo "$line" | awk -F '	' '{print $14}')
 
-      printf '%s\t%s\t%s\t%s\t%s\t%s\t%s\t"%s"\t"%s"\t"%s"\t"%s"\t"%s"\t%s\t\t\n' "$ts" "$srcip" "$destip" "$srcip6" "$destip6" "$srcport" \
-      "$destport" "$fqdn" "$reqmethod" "$requri" "$referer" "$useragent" "$cookie" >> "${REPORTDIR}/webtraffic.csv"
+      printf '%s\t%s\t%s\t%s\t%s\t%s\t%s\t"%s"\t"%s"\t"%s"\t"%s"\t"%s"\t%s\t\t"%s"\t\n' "$ts" "$srcip" "$destip" "$srcip6" "$destip6" "$srcport" \
+      "$destport" "$fqdn" "$reqmethod" "$requri" "$referer" "$useragent" "$cookie" "$auth" >> "${REPORTDIR}/webtraffic.csv"
 
 done
 
@@ -240,7 +241,7 @@ do
       destport=$(echo "$line" | awk -F '	' '{print $7}')
       sniname=$(echo "$line" | awk -F '	' '{print $8}')
       ciphersuites=$(humanise_ciphers `echo "$line" | awk -F '	' '{print $9}'`)
-      printf '%s\t%s\t%s\t%s\t%s\t%s\t%s\t"%s"\t\t\t\t\t\t"%s"\t"%s"\n' "$ts" "$srcip" "$destip" "$srcip6" "$destip6" "$srcport" \
+      printf '%s\t%s\t%s\t%s\t%s\t%s\t%s\t"%s"\t\t\t\t\t\t"%s"\t"%s"\t\n' "$ts" "$srcip" "$destip" "$srcip6" "$destip6" "$srcport" \
       "$destport" "$sniname" "$sniname" "$ciphersuites" >> "${REPORTDIR}/webtraffic.csv"
 done
 
@@ -276,6 +277,23 @@ cat ${TMPDIR}/httprequests.txt | awk -F '	' '{print $12}' | sort | uniq > "${REP
 # Built the list of known FQDNs
 cat ${TMPDIR}/httprequests.txt ${TMPDIR}/sslrequests.txt | awk -F '	' '{print $8}' | sort | uniq > "${REPORTDIR}/visitedsites.csv"
 
+# Extract any identified username/passwords
+cat ${TMPDIR}/httprequests.txt | awk -F '	' '{print $14}' | awk 'NF' | while read -r line
+do
+  type=$(echo "$line" | awk -F' ' '{print $1}')
+  if [ "$type" == "Basic" ]
+  then
+      value=$(echo -n "$line" | awk -F' ' '{print $2}' | base64 -d)
+      username=$(echo "$value" | cut -d\: -f1)
+      pass=$(echo "$value" | cut -d\: -f2)
+  else
+      # Will deal with Digest etc later
+      continue
+  fi
+
+  printf "%s\t%s\t%s\t%s\n" "$type" "$username" "$pass" "HTTP" >> "${REPORTDIR}/observedcredentials.csv"
+
+done
 
 
 # Build the IP/port list (PAS-9)
