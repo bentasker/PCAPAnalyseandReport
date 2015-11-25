@@ -123,6 +123,12 @@ echo "Starting, using ${TMPDIR} for temp files"
 
 STANDARD_FIELDS="-e frame.time_epoch -e ip.src -e ip.dst -e ipv6.src -e ipv6.dst -e tcp.srcport -e tcp.dstport"
 
+
+echo "Extracting a list of Destination Ports"
+# Build a unique list of Dest IP's and Ports (PAS-9) for TCP connections
+tshark -q -r "$PCAP" -Y "(tcp.flags.syn == 1) && (tcp.flags.ack == 0)" -T fields $STANDARD_FIELDS > "${TMPDIR}/tcpsyns.txt"
+
+
 # Grab the low hanging fruit
 echo "Analysing Port 80 Traffic"
 tshark -q -r "$PCAP" -Y "http.host" -T fields $STANDARD_FIELDS \
@@ -131,7 +137,7 @@ tshark -q -r "$PCAP" -Y "http.host" -T fields $STANDARD_FIELDS \
 # Extract the HTTPs referrers for use later
 grep "https://" "${TMPDIR}/httprequests.txt" > "${TMPDIR}/httpsreferers.txt"
 
-echo "Analysing HTTPS traffic"
+echo "Analysing SSL/TLS traffic"
 # Extract information from the SSL/TLS sessions we can see
 tshark -q -r "$PCAP" -Y "ssl.handshake" -T fields $STANDARD_FIELDS \
 -e ssl.handshake.extensions_server_name -e ssl.handshake.ciphersuite > "${TMPDIR}/sslrequests.txt"
@@ -181,7 +187,6 @@ do
       done
 
 done
-
 
 
 echo "Looking for XMPP traffic"
@@ -243,7 +248,22 @@ cat ${TMPDIR}/httprequests.txt | awk -F '	' '{print $13}' | sed 's~; ~\n~g' | so
 # Extract User-agents
 cat ${TMPDIR}/httprequests.txt | awk -F '	' '{print $12}' | sort | uniq > "${REPORTDIR}/observedhttpuseragents.csv"
 
+# Built the list of known FQDNs
 cat ${TMPDIR}/httprequests.txt ${TMPDIR}/sslrequests.txt | awk -F '	' '{print $8}' | sort | uniq > "${REPORTDIR}/visitedsites.csv"
+
+
+
+# Build the IP/port list (PAS-9)
+
+# Start with native IPv4
+cat "${TMPDIR}/tcpsyns.txt" | awk -F'	' 'length($2) && length($3)&& !length($4) && !length($5)' | awk -F '	' -v OFS='\t' '{print $3,$7,"N"}' | sort | uniq > "${REPORTDIR}/dest-ip-ports.csv"
+# Native IPv6
+cat "${TMPDIR}/tcpsyns.txt" | awk -F'	' '!length($2) && !length($3)&& length($4) && length($5)' | awk -F '	' -v OFS='\t' '{print $5,$7,"N"}' | sort | uniq >> "${REPORTDIR}/dest-ip-ports.csv"
+# Tunnelled IPv6
+cat "${TMPDIR}/tcpsyns.txt" | awk -F'	' 'length($2) && length($3)&& length($4) && length($5)' | awk -F '	' -v OFS='\t' '{print $5,$7,"Y"}' | sort | uniq >> "${REPORTDIR}/dest-ip-ports.csv"
+# IPv4 endpoints for IPv6 Tunnels
+cat "${TMPDIR}/tcpsyns.txt" | awk -F'	' 'length($2) && length($3)&& length($4) && length($5)' | awk -F '	' -v OFS='\t' '{print $3,"","T"}' | sort | uniq >> "${REPORTDIR}/dest-ip-ports.csv"
+
 
 # Pull out details of who (if anyone) has been contacted using XMPP
 for ip in `cat "${TMPDIR}/xmpprequests.txt" | awk -F '	' '{print $2}{print $3}{print $4}{print $5}' | sort | uniq`
