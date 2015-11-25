@@ -256,13 +256,13 @@ cat ${TMPDIR}/httprequests.txt ${TMPDIR}/sslrequests.txt | awk -F '	' '{print $8
 # Build the IP/port list (PAS-9)
 
 # Start with native IPv4
-cat "${TMPDIR}/tcpsyns.txt" | awk -F'	' 'length($2) && length($3)&& !length($4) && !length($5)' | awk -F '	' -v OFS='\t' '{print $3,$7,"N"}' | sort | uniq > "${REPORTDIR}/dest-ip-ports.csv"
+cat "${TMPDIR}/tcpsyns.txt" | awk -F'	' 'length($2) && length($3)&& !length($4) && !length($5)' | awk -F '	' -v OFS='\t' '{print $3,$7,"N","TCP"}' | sort | uniq > "${REPORTDIR}/dest-ip-ports.csv"
 # Native IPv6
-cat "${TMPDIR}/tcpsyns.txt" | awk -F'	' '!length($2) && !length($3)&& length($4) && length($5)' | awk -F '	' -v OFS='\t' '{print $5,$7,"N"}' | sort | uniq >> "${REPORTDIR}/dest-ip-ports.csv"
+cat "${TMPDIR}/tcpsyns.txt" | awk -F'	' '!length($2) && !length($3)&& length($4) && length($5)' | awk -F '	' -v OFS='\t' '{print $5,$7,"N","TCP"}' | sort | uniq >> "${REPORTDIR}/dest-ip-ports.csv"
 # Tunnelled IPv6
-cat "${TMPDIR}/tcpsyns.txt" | awk -F'	' 'length($2) && length($3)&& length($4) && length($5)' | awk -F '	' -v OFS='\t' '{print $5,$7,"Y"}' | sort | uniq >> "${REPORTDIR}/dest-ip-ports.csv"
+cat "${TMPDIR}/tcpsyns.txt" | awk -F'	' 'length($2) && length($3)&& length($4) && length($5)' | awk -F '	' -v OFS='\t' '{print $5,$7,"Y","TCP"}' | sort | uniq >> "${REPORTDIR}/dest-ip-ports.csv"
 # IPv4 endpoints for IPv6 Tunnels
-cat "${TMPDIR}/tcpsyns.txt" | awk -F'	' 'length($2) && length($3)&& length($4) && length($5)' | awk -F '	' -v OFS='\t' '{print $3,"","T"}' | sort | uniq >> "${REPORTDIR}/dest-ip-ports.csv"
+cat "${TMPDIR}/tcpsyns.txt" | awk -F'	' 'length($2) && length($3)&& length($4) && length($5)' | awk -F '	' -v OFS='\t' '{print $3,"","T","TCP"}' | sort | uniq >> "${REPORTDIR}/dest-ip-ports.csv"
 
 
 # Pull out details of who (if anyone) has been contacted using XMPP

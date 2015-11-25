@@ -19,13 +19,20 @@ This file contains a list of all unique IP and destination ports identified.
 
 Fields are
 
-      Dest IP, Dest Port, Tunnelled
+      Dest IP, Dest Port, Tunnelled,Proto
 
 Where Tunnelled has the following values/meanings
 
 * For both native IPv4 and IPv6, Tunnelled will be N
 * For IPv4 encapsulated IPv6, Tunnelled will be Y
 * For IPv4 addresses identified as a tunnel endpoint, port will be empty and Tunnelled will be T
+
+Proto will likely be 
+
+* TCP or
+* UDP
+
+Though may include others in the future
 
 
 observedcookies.csv  
