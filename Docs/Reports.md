@@ -38,9 +38,11 @@ Though may include others in the future
 observedcookies.csv  
 ---------------------
 
-This file contains a sorted and unique list of all cookies identified in HTTP sessions. Each row currently contains one field - Cookie.
+This file contains a sorted and unique list of all cookies identified in HTTP sessions.
 
-Note: this will likely be split later into two fields, Cookie name and Value
+Fields are
+
+    Cookie Name, Value
 
 
 observedhttpuseragents.csv
