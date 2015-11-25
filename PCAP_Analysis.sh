@@ -190,7 +190,7 @@ done
 
 
 echo "Looking for XMPP traffic"
-tshark -q -r "$PCAP" -Y "tcp.dstport == 5222" -T fields $STANDARD_FIELDS > "${TMPDIR}/xmpprequests.txt"
+tshark -q -r "$PCAP" -Y "xmpp" -T fields $STANDARD_FIELDS > "${TMPDIR}/xmpprequests.txt"
 
 
 # Will work on pick out some extra information later, for now, let's combine into a report
