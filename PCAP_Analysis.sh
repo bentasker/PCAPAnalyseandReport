@@ -121,7 +121,7 @@ line=$1
 mkdir -p "$TMPDIR"
 echo "Starting, using ${TMPDIR} for temp files"
 
-STANDARD_FIELDS="-e frame.time_epoch -e ip.src -e ip.dst -e tcp.srcport -e tcp.dstport"
+STANDARD_FIELDS="-e frame.time_epoch -e ip.src -e ip.dst -e ipv6.src -e ipv6.dst -e tcp.srcport -e tcp.dstport"
 
 # Grab the low hanging fruit
 echo "Analysing Port 80 Traffic"
@@ -133,7 +133,7 @@ grep "https://" "${TMPDIR}/httprequests.txt" > "${TMPDIR}/httpsreferers.txt"
 
 echo "Analysing HTTPS traffic"
 # Extract information from the SSL/TLS sessions we can see
-tshark -q -r "$PCAP" -Y "ssl.handshake" -T fields -e $STANDARD_FIELDS \
+tshark -q -r "$PCAP" -Y "ssl.handshake" -T fields $STANDARD_FIELDS \
 -e ssl.handshake.extensions_server_name -e ssl.handshake.ciphersuite > "${TMPDIR}/sslrequests.txt"
 
 echo "Identifying HTTPS pages from HTTP Referrers"
@@ -162,10 +162,10 @@ echo "Identifying HTTPS pages from HTTP Referrers"
 
 # Introduced for PAS-2
 # Extract HTTPS referrers from Port 80 requests and gather identified URL paths
-cat "${TMPDIR}/httpsreferers.txt" | awk -F '	' '{print $9}' | egrep -o 'https:\/\/([^\/]*)' | sort | uniq | sed 's~https://~~g' | while read -r sslhost
+cat "${TMPDIR}/httpsreferers.txt" | awk -F '	' '{print $11}' | egrep -o 'https:\/\/([^\/]*)' | sort | uniq | sed 's~https://~~g' | while read -r sslhost
 do
 
-      lines=`cat "${TMPDIR}/httpsreferers.txt" | awk -F '	' '{print $9}' | grep -n "https://$sslhost"`
+      lines=`cat "${TMPDIR}/httpsreferers.txt" | awk -F '	' '{print $11}' | grep -n "https://$sslhost"`
 
       linecount=`echo -n "${lines}" |wc -l`
       if [ "$linecount" == 0 ]
@@ -204,11 +204,13 @@ do
       ts=$(echo "$line" | awk -F '	' '{print $1}')
       srcip=$(echo "$line" | awk -F '	' '{print $2}')
       destip=$(echo "$line" | awk -F '	' '{print $3}')
-      srcport=$(echo "$line" | awk -F '	' '{print $4}')
-      destport=$(echo "$line" | awk -F '	' '{print $5}')
-      sniname=$(echo "$line" | awk -F '	' '{print $6}')
-      ciphersuites=$(humanise_ciphers `echo "$line" | awk -F '	' '{print $7}'`)
-      printf "%s\t%s\t%s\t%s\t%s\t%s\t\t\t\t\t\t%s\t%s\n" "$ts" "$srcip" "$destip" "$srcport" \
+      srcip6=$(echo "$line" | awk -F '	' '{print $4}')
+      destip6=$(echo "$line" | awk -F '	' '{print $5}')
+      srcport=$(echo "$line" | awk -F '	' '{print $6}')
+      destport=$(echo "$line" | awk -F '	' '{print $7}')
+      sniname=$(echo "$line" | awk -F '	' '{print $8}')
+      ciphersuites=$(humanise_ciphers `echo "$line" | awk -F '	' '{print $9}'`)
+      printf "%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t\t\t\t\t\t%s\t%s\n" "$ts" "$srcip" "$destip" "$srcip6" "$destip6" "$srcport" \
       "$destport" "$sniname" "$sniname" "$ciphersuites" >> "${REPORTDIR}/webtraffic.csv"
 done
 
@@ -226,7 +228,7 @@ Known Pages within SSL Sites
 EOM
 
 # Extract associated IP's
-for ip in `cat ${TMPDIR}/*requests.txt | awk -F '	' '{print $2}{print $3}' | sort | uniq`
+for ip in `cat ${TMPDIR}/*requests.txt | awk -F '	' '{print $2}{print $3}{print $4}{print $5}' | sort | uniq`
 do
 
       PTR=`host "$ip" | tr '\n' ' '`
@@ -236,15 +238,15 @@ done
 
 
 # Extract cookies
-cat ${TMPDIR}/httprequests.txt | awk -F '	' '{print $11}' | sed 's~; ~\n~g' | sort | uniq > "${REPORTDIR}/observedcookies.csv"
+cat ${TMPDIR}/httprequests.txt | awk -F '	' '{print $13}' | sed 's~; ~\n~g' | sort | uniq > "${REPORTDIR}/observedcookies.csv"
 
 # Extract User-agents
-cat ${TMPDIR}/httprequests.txt | awk -F '	' '{print $10}' | sort | uniq > "${REPORTDIR}/observedhttpuseragents.csv"
+cat ${TMPDIR}/httprequests.txt | awk -F '	' '{print $12}' | sort | uniq > "${REPORTDIR}/observedhttpuseragents.csv"
 
-cat ${TMPDIR}/httprequests.txt ${TMPDIR}/sslrequests.txt | awk -F '	' '{print $6}' | sort | uniq > "${REPORTDIR}/visitedsites.csv"
+cat ${TMPDIR}/httprequests.txt ${TMPDIR}/sslrequests.txt | awk -F '	' '{print $8}' | sort | uniq > "${REPORTDIR}/visitedsites.csv"
 
 # Pull out details of who (if anyone) has been contacted using XMPP
-for ip in `cat "${TMPDIR}/xmpprequests.txt" | awk -F '	' '{print $2}{print $3}' | sort | uniq`
+for ip in `cat "${TMPDIR}/xmpprequests.txt" | awk -F '	' '{print $2}{print $3}{print $4}{print $5}' | sort | uniq`
 do
     echo "$ip," >> "${REPORTDIR}/xmpppeers.csv"
 done
