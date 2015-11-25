@@ -3,6 +3,7 @@ Report Files
 
 This documentation details the report files generated, what they represent and the field structure used (where appropriate)
 
+All CSVs are tab seperated.
 
 
 associatedhosts.csv  
@@ -42,7 +43,10 @@ webtraffic.csv
 
 This file contains a chronologically ordered list of all traffic observed on either Port 80 (HTTP) or anything with a TLS handshake (so HTTPS, IMAPS etc)
 
-Fields currently differ depending on the port used - this will be addressed in future
+As of PAS-10, fields are as follows
+
+      epoch,ipv4 src ip,ipv4 dest ip, ipv6 src ip, ipv6 dest ip,src port, dest port, FQDN, HTTP request method, Request Path, HTTP Referer, HTTP useragent, http cookie, SNI Server name, SSL/TLS ciphersuite(s)
+
 
 
 xmpppeers.csv
