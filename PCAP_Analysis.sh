@@ -243,7 +243,7 @@ done
 
 
 # Extract cookies
-cat ${TMPDIR}/httprequests.txt | awk -F '	' '{print $13}' | sed 's~; ~\n~g' | sed 's/=/\t/g' |sort | uniq > "${REPORTDIR}/observedcookies.csv"
+cat ${TMPDIR}/httprequests.txt | awk -F '	' '{print $13}' | sed 's~; ~\n~g' | sed 's/=/\t/' |sort | uniq > "${REPORTDIR}/observedcookies.csv"
 
 # Extract User-agents
 cat ${TMPDIR}/httprequests.txt | awk -F '	' '{print $12}' | sort | uniq > "${REPORTDIR}/observedhttpuseragents.csv"
