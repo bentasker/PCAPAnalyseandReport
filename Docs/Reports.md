@@ -12,6 +12,22 @@ associatedhosts.csv
 This file details all unique IP's identified within the PCAP. Each row contains one field - IP
 
 
+dest-ip-ports.csv  
+---------------------
+
+This file contains a list of all unique IP and destination ports identified.
+
+Fields are
+
+      Dest IP, Dest Port, Tunnelled
+
+Where Tunnelled has the following values/meanings
+
+* For both native IPv4 and IPv6, Tunnelled will be N
+* For IPv4 encapsulated IPv6, Tunnelled will be Y
+* For IPv4 addresses identified as a tunnel endpoint, port will be empty and Tunnelled will be T
+
+
 observedcookies.csv  
 ---------------------
 
