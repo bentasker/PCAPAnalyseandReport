@@ -201,9 +201,34 @@ REPORTDIR="report.$PCAP.`date +'%s'`"
 mkdir $REPORTDIR
 
 
-# Build the webtraffic CSV
-echo > "${REPORTDIR}/webtraffic.csv" # Might drop a header row in here later
-cat ${TMPDIR}/httprequests.txt >> "${REPORTDIR}/webtraffic.csv"
+
+#echo > "${REPORTDIR}/webtraffic.csv" # Might drop a header row in here later
+#cat ${TMPDIR}/httprequests.txt >> "${REPORTDIR}/webtraffic.csv"
+
+# Build webtraffic.csv
+cat ${TMPDIR}/httprequests.txt | while read -r line
+do
+      ts=$(echo "$line" | awk -F '	' '{print $1}')
+      srcip=$(echo "$line" | awk -F '	' '{print $2}')
+      destip=$(echo "$line" | awk -F '	' '{print $3}')
+      srcip6=$(echo "$line" | awk -F '	' '{print $4}')
+      destip6=$(echo "$line" | awk -F '	' '{print $5}')
+      srcport=$(echo "$line" | awk -F '	' '{print $6}')
+      destport=$(echo "$line" | awk -F '	' '{print $7}')
+      fqdn=$(echo "$line" | awk -F '	' '{print $8}')
+      reqmethod=$(echo "$line" | awk -F '	' '{print $9}')
+      requri=$(echo "$line" | awk -F '	' '{print $10}')
+      referer=$(echo "$line" | awk -F '	' '{print $11}')
+      useragent=$(echo "$line" | awk -F '	' '{print $12}')
+      cookie=$(echo "$line" | awk -F '	' '{print $13}')
+
+      printf '%s\t%s\t%s\t%s\t%s\t%s\t%s\t"%s"\t"%s"\t"%s"\t"%s"\t"%s"\t%s\t\t\n' "$ts" "$srcip" "$destip" "$srcip6" "$destip6" "$srcport" \
+      "$destport" "$fqdn" "$reqmethod" "$requri" "$referer" "$useragent" "$cookie" >> "${REPORTDIR}/webtraffic.csv"
+
+done
+
+
+# Add SSL/TLS traffic to webtraffic.csv
 cat ${TMPDIR}/sslrequests.txt | while read -r line
 do
       ts=$(echo "$line" | awk -F '	' '{print $1}')
@@ -215,7 +240,7 @@ do
       destport=$(echo "$line" | awk -F '	' '{print $7}')
       sniname=$(echo "$line" | awk -F '	' '{print $8}')
       ciphersuites=$(humanise_ciphers `echo "$line" | awk -F '	' '{print $9}'`)
-      printf "%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t\t\t\t\t\t%s\t%s\n" "$ts" "$srcip" "$destip" "$srcip6" "$destip6" "$srcport" \
+      printf '%s\t%s\t%s\t%s\t%s\t%s\t%s\t"%s"\t\t\t\t\t\t"%s"\t"%s"\n' "$ts" "$srcip" "$destip" "$srcip6" "$destip6" "$srcport" \
       "$destport" "$sniname" "$sniname" "$ciphersuites" >> "${REPORTDIR}/webtraffic.csv"
 done
 
