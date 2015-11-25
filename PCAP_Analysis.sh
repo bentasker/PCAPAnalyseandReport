@@ -121,17 +121,19 @@ line=$1
 mkdir -p "$TMPDIR"
 echo "Starting, using ${TMPDIR} for temp files"
 
+STANDARD_FIELDS="-e frame.time_epoch -e ip.src -e ip.dst -e tcp.srcport -e tcp.dstport"
+
 # Grab the low hanging fruit
 echo "Analysing Port 80 Traffic"
-tshark -q -r "$PCAP" -Y "http.host" -T fields -e frame.time_epoch -e ip.src -e ip.dst -e tcp.srcport -e tcp.dstport -e http.host \
--e http.request.method -e http.request.uri -e http.referer -e http.user_agent -e http.cookie > "${TMPDIR}/httprequests.txt"
+tshark -q -r "$PCAP" -Y "http.host" -T fields $STANDARD_FIELDS \
+-e http.host -e http.request.method -e http.request.uri -e http.referer -e http.user_agent -e http.cookie > "${TMPDIR}/httprequests.txt"
 
 # Extract the HTTPs referrers for use later
 grep "https://" "${TMPDIR}/httprequests.txt" > "${TMPDIR}/httpsreferers.txt"
 
 echo "Analysing HTTPS traffic"
 # Extract information from the SSL/TLS sessions we can see
-tshark -q -r "$PCAP" -Y "ssl.handshake" -T fields -e frame.time_epoch -e ip.src -e ip.dst -e tcp.srcport -e tcp.dstport \
+tshark -q -r "$PCAP" -Y "ssl.handshake" -T fields -e $STANDARD_FIELDS \
 -e ssl.handshake.extensions_server_name -e ssl.handshake.ciphersuite > "${TMPDIR}/sslrequests.txt"
 
 echo "Identifying HTTPS pages from HTTP Referrers"
@@ -183,7 +185,7 @@ done
 
 
 echo "Looking for XMPP traffic"
-tshark -q -r "$PCAP" -Y "tcp.dstport == 5222" -T fields -e frame.time_epoch -e ip.src -e ip.dst -e tcp.srcport -e tcp.dstport > "${TMPDIR}/xmpprequests.txt"
+tshark -q -r "$PCAP" -Y "tcp.dstport == 5222" -T fields $STANDARD_FIELDS > "${TMPDIR}/xmpprequests.txt"
 
 
 # Will work on pick out some extra information later, for now, let's combine into a report
