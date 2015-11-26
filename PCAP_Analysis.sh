@@ -365,7 +365,7 @@ then
 fi
 
 # This may have been set in config, we use a small default set - as much defined by test data as what's interesting
-INTERESTING_PATHS=${INTERESTING_PATHS:-"^((https:\/\/|http:\/\/)?)(www|np|m|i)\.reddit\.com\/r\/([^\/]*)|^((https:\/\/|http:\/\/)?)www\.google\.|^((https:\/\/|http:\/\/)?)www\.bbc\.co\.uk"}
+INTERESTING_PATHS=${INTERESTING_PATHS:-"^((https:\/\/|http:\/\/)?)(www|np|m|i)\.reddit\.com\/(r|u)\/([^\/]*)|^((https:\/\/|http:\/\/)?)www\.google\.|^((https:\/\/|http:\/\/)?)www\.bbc\.co\.uk"}
 
 
 mkdir -p "$TMPDIR"
