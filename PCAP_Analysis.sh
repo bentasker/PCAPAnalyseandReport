@@ -365,7 +365,7 @@ then
 fi
 
 # This may have been set in config, we use a small default set - as much defined by test data as what's interesting
-INTERESTING_PATHS=${INTERESTING_PATHS:-"^((https:\/\/|http:\/\/)?)(www|np|m|i)\.reddit\.com\/(r|u)\/([^\/]*)|^((https:\/\/|http:\/\/)?)www\.google\.|^((https:\/\/|http:\/\/)?)www\.bbc\.co\.uk|^((https:\/\/|http:\/\/)?)t.co/"}
+INTERESTING_PATHS=${INTERESTING_PATHS:-"^((https:\/\/|http:\/\/)?)(www|np|m|i)\.reddit\.com\/(r|u)\/([^\/]*)|^((https:\/\/|http:\/\/)?)www\.google\.([^\/]*)|^((https:\/\/|http:\/\/)?)www\.bbc\.co\.uk|^((https:\/\/|http:\/\/)?)t.co/"}
 
 
 mkdir -p "$TMPDIR"
@@ -538,6 +538,12 @@ cat "${TMPDIR}/tcpsyns.txt" | awk -F'	' '!length($2) && !length($3)&& length($4)
 cat "${TMPDIR}/tcpsyns.txt" | awk -F'	' 'length($2) && length($3)&& length($4) && length($5)' | awk -F '	' -v OFS='\t' '{print $5,$7,"Y","TCP"}' | sort | uniq >> "${REPORTDIR}/dest-ip-ports.csv"
 # IPv4 endpoints for IPv6 Tunnels
 cat "${TMPDIR}/tcpsyns.txt" | awk -F'	' 'length($2) && length($3)&& length($4) && length($5)' | awk -F '	' -v OFS='\t' '{print $3,"","T","TCP"}' | sort | uniq >> "${REPORTDIR}/dest-ip-ports.csv"
+
+
+# Create the interesting Referrers CSV
+cat "${TMPDIR}/interestingurls.csv" | egrep -o -e "$INTERESTING_PATHS" | sort | uniq > "${REPORTDIR}/interestingdomains.csv"
+cat "${TMPDIR}/interestingurls.csv" > "${REPORTDIR}/interestingdomains-full.csv"
+
 
 
 # Pull out details of who (if anyone) has been contacted using XMPP
