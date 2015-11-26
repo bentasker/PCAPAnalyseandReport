@@ -83,9 +83,9 @@ webtraffic.csv
 
 This file contains a chronologically ordered list of all traffic observed on either Port 80 (HTTP) or anything with a TLS handshake (so HTTPS, IMAPS etc)
 
-As of PAS-10, fields are as follows
+Fields are as follows
 
-      epoch,ipv4 src ip,ipv4 dest ip, ipv6 src ip, ipv6 dest ip,src port, dest port, FQDN, HTTP request method, Request Path, HTTP Referer, HTTP useragent, http cookie, SNI Server name, SSL/TLS ciphersuite(s)
+      epoch,ipv4 src ip,ipv4 dest ip, ipv6 src ip, ipv6 dest ip,src port, dest port, FQDN, HTTP request method, Request Path, HTTP Referer, HTTP useragent, http cookie, SNI Server name, SSL/TLS ciphersuite(s), Authentication Token
 
 
 
