@@ -262,7 +262,8 @@ done
 sort -n -o "${REPORTDIR}/webtraffic.csv" "${REPORTDIR}/webtraffic.csv"
 
 
-
+if [ -f ${TMPDIR}/site.information.* ]
+then
 
 cat << EOM > "${REPORTDIR}/ssltraffic.txt"
 Known Pages within SSL Sites
@@ -270,6 +271,9 @@ Known Pages within SSL Sites
     `for i in ${TMPDIR}/site.information.*; do cat "$i"; done`
 
 EOM
+
+fi
+
 
 # Extract associated IP's
 for ip in `cat ${TMPDIR}/*requests.txt | awk -F '	' '{print $2}{print $3}{print $4}{print $5}' | sort | uniq`
