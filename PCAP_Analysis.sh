@@ -387,30 +387,9 @@ echo "Analysing SSL/TLS traffic"
 tshark -q -r "$PCAP" -Y "ssl.handshake" -T fields $STANDARD_FIELDS \
 -e ssl.handshake.extensions_server_name -e ssl.handshake.ciphersuite > "${TMPDIR}/sslrequests.txt"
 
+
+
 echo "Identifying HTTPS pages from HTTP Referrers"
-# Now lets see if we can pick out some of the URLs visited on HTTPs sites. Disabled (and replaced) for PAS-2
-#cat "${TMPDIR}/sslrequests.txt" | awk -F '	' '{print $6}' | sort | uniq | while read -r sslhost
-#do
-#
-#      if [ "$sslhost" == "" ]
-#      then
-#	    continue
-#      fi
-#
-#      lines=`grep "https://$sslhost" "${TMPDIR}/httpsreferers.txt"`
-#
-#      linecount=`echo -n "${lines}" |wc -l`
-#      if [ "$linecount" == 0 ]
-#      then
-#	  continue
-#      fi
-#
-#      echo "$sslhost" > "${TMPDIR}/site.information.$sslhost"
-#      echo "" >> "${TMPDIR}/site.information.$sslhost"
-#      echo "${lines}" >> "${TMPDIR}/site.information.$sslhost"
-#done
-
-
 # Introduced for PAS-2
 # Extract HTTPS referrers from Port 80 requests and gather identified URL paths
 cat "${TMPDIR}/httpsreferers.txt" | awk -F '	' '{print $11}' | egrep -o 'https:\/\/([^\/]*)' | sort | uniq | sed 's~https://~~g' | while read -r sslhost
@@ -439,16 +418,9 @@ tshark -q -r "$PCAP" -Y "xmpp" -T fields $STANDARD_FIELDS > "${TMPDIR}/xmppreque
 
 
 # Will work on pick out some extra information later, for now, let's combine into a report
-
-
 echo "Building reports"
 REPORTDIR="report.$PCAP.`date +'%s'`"
 mkdir $REPORTDIR
-
-
-
-#echo > "${REPORTDIR}/webtraffic.csv" # Might drop a header row in here later
-#cat ${TMPDIR}/httprequests.txt >> "${REPORTDIR}/webtraffic.csv"
 
 # Build webtraffic.csv
 cat ${TMPDIR}/httprequests.txt | while read -r line
@@ -472,7 +444,6 @@ do
       "$destport" "$fqdn" "$reqmethod" "$requri" "$referer" "$useragent" "$cookie" "$auth" >> "${REPORTDIR}/webtraffic.csv"
 
 done
-
 
 # Add SSL/TLS traffic to webtraffic.csv
 cat ${TMPDIR}/sslrequests.txt | while read -r line
