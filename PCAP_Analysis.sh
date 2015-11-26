@@ -9,7 +9,7 @@
 
 PCAP="$1"
 TMPDIR="/tmp/pcapanalysis.$$"
-
+MYDIR=`dirname $0`
 
 
 
@@ -358,9 +358,14 @@ line=$1
 
 
 
+# Load the config, if it exists
+if [ -f "${MYDIR}/config.sh" ]
+then
+      source "${MYDIR}/config.sh"
+fi
 
-
-
+# This may have been set in config, we use a small default set - as much defined by test data as what's interesting
+INTERESTING_PATHS=${INTERESTING_PATHS:-"(www|np|m|i)\.reddit\.com\/r\/([^\/]*)|www\.google\.|www\.bbc\.co\.uk"}
 
 
 mkdir -p "$TMPDIR"
@@ -411,6 +416,13 @@ do
       done
 
 done
+
+
+# Extract interesting referers (PAS-3)
+cat "${TMPDIR}/httprequests.txt" | awk -F'	' -v OFS='\t' '{print $11,"HTTP Referer"}' | egrep -e "$INTERESTING_PATHS" | sort | uniq > "${TMPDIR}/interestingurls.csv"
+
+# Extract interesting URL paths
+cat "${TMPDIR}/httprequests.txt" | awk -F'	' -v OFS='\t' '{print $8$10,"HTTP Request"}' | sed 's/"//g' | egrep -e "$INTERESTING_PATHS" | sort | uniq >> "${TMPDIR}/interestingurls.csv"
 
 
 echo "Looking for XMPP traffic"
