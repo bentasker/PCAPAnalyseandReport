@@ -367,38 +367,37 @@ fi
 # This may have been set in config, we use a small default set - as much defined by test data as what's interesting
 INTERESTING_PATHS=${INTERESTING_PATHS:-"^((https:\/\/|http:\/\/)?)(www|np|m|i)\.reddit\.com\/(r|u)\/([^\/]*)|^((https:\/\/|http:\/\/)?)t.co/"}
 PASSIVE_ONLY=${PASSIVE_ONLY:-0}
-
+STANDARD_FIELDS="-e frame.time_epoch -e ip.src -e ip.dst -e ipv6.src -e ipv6.dst -e tcp.srcport -e tcp.dstport"
 
 mkdir -p "$TMPDIR"
 echo "Starting, using ${TMPDIR} for temp files"
+echo "Processing PCAP"
 
-STANDARD_FIELDS="-e frame.time_epoch -e ip.src -e ip.dst -e ipv6.src -e ipv6.dst -e tcp.srcport -e tcp.dstport"
 
-
-echo "Extracting a list of Destination Ports"
+printf "\tExtracting a list of Destination Ports\n"
 # Build a unique list of Dest IP's and Ports (PAS-9) for TCP connections
 tshark -q -r "$PCAP" -Y "(tcp.flags.syn == 1) && (tcp.flags.ack == 0)" -T fields $STANDARD_FIELDS > "${TMPDIR}/tcpsyns.txt"
 
 
 # Grab the low hanging fruit
-echo "Analysing Port 80 Traffic"
+printf "\tAnalysing Port 80 Traffic\n"
 tshark -q -r "$PCAP" -Y "http.host" -T fields $STANDARD_FIELDS \
 -e http.host -e http.request.method -e http.request.uri -e http.referer -e http.user_agent -e http.cookie -e http.authorization > "${TMPDIR}/httprequests.txt"
 
 # Extract the HTTPs referrers for use later
 grep "https://" "${TMPDIR}/httprequests.txt" > "${TMPDIR}/httpsreferers.txt"
 
-echo "Analysing SSL/TLS traffic"
+printf "\tAnalysing SSL/TLS traffic\n"
 # Extract information from the SSL/TLS sessions we can see
 tshark -q -r "$PCAP" -Y "ssl.handshake" -T fields $STANDARD_FIELDS \
 -e ssl.handshake.extensions_server_name -e ssl.handshake.ciphersuite > "${TMPDIR}/sslrequests.txt"
 
-echo "Extracting Mail related traffic"
+printf "\tExtracting Mail related traffic\n"
 tshark -q -r "$PCAP" -Y "smtp.req" -T fields $STANDARD_FIELDS \
 -e smtp.req.command -e smtp.req.parameter -e smtp.auth.username -e smtp.auth.password > "${TMPDIR}/mailtransactions.csv"
 
-
-echo "Identifying HTTPS pages from HTTP Referrers"
+echo "Correlating information"
+printf "\tIdentifying HTTPS pages from HTTP Referrers\n"
 # Introduced for PAS-2
 # Extract HTTPS referrers from Port 80 requests and gather identified URL paths
 #
@@ -435,15 +434,16 @@ do
       done
 done
 
-
+printf "\tLooking for interesting referers\n"
 # Extract interesting referers (PAS-3)
 cat "${TMPDIR}/httprequests.txt" | awk -F'	' -v OFS='\t' '{print $11,"HTTP Referer", $1}' | egrep -e "$INTERESTING_PATHS" | sort | uniq > "${TMPDIR}/interestingurls.csv"
 
+printf "\tLooking for interesting paths\n"
 # Extract interesting URL paths
 cat "${TMPDIR}/httprequests.txt" | awk -F'	' -v OFS='\t' '{print $8$10,"HTTP Request", $1}' | sed 's/"//g' | egrep -e "$INTERESTING_PATHS" | sort | uniq >> "${TMPDIR}/interestingurls.csv"
 
 
-echo "Looking for XMPP traffic"
+printf "\tLooking for XMPP traffic\n"
 tshark -q -r "$PCAP" -Y "xmpp" -T fields $STANDARD_FIELDS > "${TMPDIR}/xmpprequests.txt"
 
 
@@ -453,6 +453,7 @@ REPORTDIR="report.$PCAP.`date +'%s'`"
 mkdir $REPORTDIR
 
 # Build webtraffic.csv
+printf "\tProcessing webtraffic.csv\n"
 cat ${TMPDIR}/httprequests.txt | while read -r line
 do
       ts=$(echo "$line" | awk -F '	' '{print $1}')
@@ -507,7 +508,7 @@ sort -n -o "${REPORTDIR}/webtraffic.csv" "${REPORTDIR}/webtraffic.csv"
 #
 #fi
 
-
+printf '\tBuilding list of known IPs\n'
 # Extract associated IP's
 for ip in `cat ${TMPDIR}/*requests.txt | awk -F '	' '{print $2}{print $3}{print $4}{print $5}' | sort | uniq`
 do
@@ -524,15 +525,19 @@ done
 
 
 # Extract cookies
+printf '\tBuilding cookie list\n'
 cat ${TMPDIR}/httprequests.txt | awk -F '	' '{print $13}' | sed 's~; ~\n~g' | sed 's/=/\t/' |sort | uniq > "${REPORTDIR}/observedcookies.csv"
 
 # Extract User-agents
+printf '\tBuilding User-agent list\n'
 cat ${TMPDIR}/httprequests.txt | awk -F '	' '{print $12}' | sort | uniq > "${REPORTDIR}/observedhttpuseragents.csv"
 
 # Built the list of known FQDNs
+printf '\tBuilding FQDN list\n'
 cat ${TMPDIR}/httprequests.txt ${TMPDIR}/sslrequests.txt | awk -F '	' '{print $8}' | sort | uniq > "${REPORTDIR}/visitedsites.csv"
 
 # Extract any identified username/passwords
+printf '\tBuilding Credential List\n'
 cat ${TMPDIR}/httprequests.txt | awk -F '	' '{print $14}' | awk 'NF' | while read -r line
 do
   type=$(echo "$line" | awk -F' ' '{print $1}')
@@ -554,12 +559,13 @@ done
 # Grab the SSL Paths CSV (PAS-19)
 if [ -e "${TMPDIR}/httpspaths.csv" ]
 then
+    printf '\tBuilding list of httpspaths - httpspaths.csv\n'
     cat "${TMPDIR}/httpspaths.csv" | sort | uniq > "${REPORTDIR}/httpspaths.csv"
 fi
 
 
 # Build the IP/port list (PAS-9)
-
+printf '\tBuilding IP/Port list - dest-ip-ports.csv \n'
 # Start with native IPv4
 cat "${TMPDIR}/tcpsyns.txt" | awk -F'	' 'length($2) && length($3)&& !length($4) && !length($5)' | awk -F '	' -v OFS='\t' '{print $3,$7,"N","TCP"}' | sort | uniq > "${REPORTDIR}/dest-ip-ports.csv"
 # Native IPv6
@@ -571,12 +577,14 @@ cat "${TMPDIR}/tcpsyns.txt" | awk -F'	' 'length($2) && length($3)&& length($4) &
 
 
 # Create the interesting Referrers CSV
+printf '\tCreating interesting URLs list \n'
 cat "${TMPDIR}/interestingurls.csv" | egrep -o -e "$INTERESTING_PATHS" | sort | uniq > "${REPORTDIR}/interestingdomains.csv"
 cat "${TMPDIR}/interestingurls.csv" > "${REPORTDIR}/interestingdomains-full.csv"
 
 # Extract interesting cookies and add to the Domains CSV
 
 # Google Analytics Campaign Cookies
+printf '\tExtracting interesting cookies\n'
 grep "__utmz" "${REPORTDIR}/observedcookies.csv" | awk -F'	' '{print $2}' | while read -r line
 do
       ts=$(echo "$line" | egrep -o -e "\.[0-9]+" | sed 's/\.//g' | head -n1)
@@ -588,12 +596,14 @@ done
 
 
 # Pull out details of who (if anyone) has been contacted using XMPP
+printf '\tBuilding xmpppeers.csv\n'
 for ip in `cat "${TMPDIR}/xmpprequests.txt" | awk -F '	' '{print $2}{print $3}{print $4}{print $5}' | sort | uniq`
 do
     echo "$ip," >> "${REPORTDIR}/xmpppeers.csv"
 done
 
 # Handle Mail related traffic
+printf '\tBuilding mailtransactions.csv\n'
 cat "${TMPDIR}/mailtransactions.csv" > "${REPORTDIR}/mailtransactions.csv"
 
 echo "Done- Reports in ${REPORTDIR}"
