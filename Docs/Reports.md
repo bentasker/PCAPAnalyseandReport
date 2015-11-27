@@ -35,6 +35,37 @@ Proto will likely be
 Though may include others in the future
 
 
+interestingdomains.csv
+-----------------------
+
+A single column CSV containing a list of unique matches to interesting domains - see [Interesting Referers/Paths](https://github.com/bentasker/PCAPAnalyseandReport/blob/master/Docs/OverridingConfiguration.md#interesting-refererspaths) for more information on how these are configured and identified
+
+This CSV contains only the portion of each request/header which precisely matched the regex used. So matching a regex of *google.com* would result in google.com being recorded in this CSV
+
+See also *interestingdomains-full.csv*
+
+
+interestingdomains-full.csv
+-----------------------------
+
+A multi column CSV containing a list of matches to interesting domains - see [Interesting Referers/Paths](https://github.com/bentasker/PCAPAnalyseandReport/blob/master/Docs/OverridingConfiguration.md#interesting-refererspaths) for more information on how these are configured and identified.
+
+Unlike *interestingdomains.csv* this CSV contains the full value of the header which matched the regex. So with a regex of *google.com* the value google.com/search/?q=foo might be recorded.
+
+The CSV consists of 3 columns
+
+    Header value, Match type, Time observed
+
+Where Match type will be one of the following
+
+* HTTP Referer - Match was found in a Referer header
+* HTTP Request - A HTTP request was found matching the regex (either the requested path, or the Host header)
+* GA Cookie - A path was extracted from a Google analytics cookie
+
+Note that at time of writing, the GA Cookie entries do not use the configured Regex's.
+
+
+
 observedcookies.csv  
 ---------------------
 

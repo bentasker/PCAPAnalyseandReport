@@ -35,6 +35,9 @@ The final consideration to take into account, is the generation of *interestingd
 
 Matched the string *https://www.reddit.com/r/awww/comments/3u2s90/no_i_didnt_drink_it/*, only *https://www.reddit.com/r/awww* will be written to *interestingdomains.csv*. The full value (including how it was obtained) will be written to *interestingdomains-full.csv*
 
+The aim of this feature is to allow you to specify specific information you may be interested in extracting (to stick with the Reddit example, we can start to build an idea of the subreddits a user may be subscribed to).
+
+
 
 
 
