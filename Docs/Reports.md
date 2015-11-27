@@ -35,6 +35,18 @@ Proto will likely be
 Though may include others in the future
 
 
+httpspaths.csv
+----------------
+
+In [PAS-19](http://projects.bentasker.co.uk/jira_projects/browse/PAS-19.html) this report replaced the old [ssltraffic.csv](https://github.com/bentasker/PCAPAnalyseandReport/blob/b7e36ffb25e248ae4c0c8a0fa525843eff99262c/Docs/Reports.md#ssltraffictxt--)
+
+This file contains details of all HTTPS hosts where visited paths have been identified (usually from the referrer header when leaving a HTTPS domain for a HTTP one)
+
+Fields are
+
+    FQDN, Url Path identified
+
+
 interestingdomains.csv
 -----------------------
 
@@ -95,12 +107,6 @@ observedhttpuseragents.csv
 ----------------------------
 
 This file contains a sorted and unique list of all user-agents identified in HTTP sessions
-
-
-ssltraffic.txt  
-----------------
-
-This file contains details of all HTTPS hosts where visited paths have been identified (usually from the referrer header when leaving a HTTPS domain for a HTTP one)
 
 
 visitedsites.csv  

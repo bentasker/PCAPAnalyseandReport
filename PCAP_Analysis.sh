@@ -397,24 +397,38 @@ tshark -q -r "$PCAP" -Y "ssl.handshake" -T fields $STANDARD_FIELDS \
 echo "Identifying HTTPS pages from HTTP Referrers"
 # Introduced for PAS-2
 # Extract HTTPS referrers from Port 80 requests and gather identified URL paths
+#
+# The earlier grep was a broad sweep, we need to make sure the https is actually in the referer column
 cat "${TMPDIR}/httpsreferers.txt" | awk -F '	' '{print $11}' | egrep -o 'https:\/\/([^\/]*)' | sort | uniq | sed 's~https://~~g' | while read -r sslhost
 do
 
+      # Extract line numbers for all entries that match our SSL host
       lines=`cat "${TMPDIR}/httpsreferers.txt" | awk -F '	' '{print $11}' | grep -n "https://$sslhost"`
 
+      # Check we got some results 
       linecount=`echo -n "${lines}" |wc -l`
       if [ "$linecount" == 0 ]
       then
-	  continue # This should never happen
+	  continue # This should never happen, but we don't want to create an empty temp file
       fi
 
-      echo "$sslhost" > "${TMPDIR}/site.information.$sslhost"
-      echo "" >> "${TMPDIR}/site.information.$sslhost"
+      # Disabled in PAS-19
+      #echo "$sslhost" > "${TMPDIR}/site.information.$sslhost"
+      #echo "" >> "${TMPDIR}/site.information.$sslhost"
+      #for lineno in `echo "${lines}" | cut -d\: -f1`
+      #do
+      #		sed -n ${lineno}p "${TMPDIR}/httpsreferers.txt" >> "${TMPDIR}/site.information.$sslhost"
+      #done
+
+      # cycle through the entries
       for lineno in `echo "${lines}" | cut -d\: -f1`
       do
-      		sed -n ${lineno}p "${TMPDIR}/httpsreferers.txt" >> "${TMPDIR}/site.information.$sslhost"
-      done
+	    # This time we want the full referrer string, path and all
+	    refererstring=$(sed -n ${lineno}p "${TMPDIR}/httpsreferers.txt" | awk -F '	' '{print $11}')
 
+	    # Update the (new) temp file
+	    printf '"%s"\t"%s"\n' "$sslhost" "$refererstring" >> "${TMPDIR}/httpspaths.csv"
+      done
 done
 
 
@@ -476,18 +490,18 @@ done
 # Sort the entries
 sort -n -o "${REPORTDIR}/webtraffic.csv" "${REPORTDIR}/webtraffic.csv"
 
-
-if [ -f ${TMPDIR}/site.information.* ]
-then
-
-cat << EOM > "${REPORTDIR}/ssltraffic.txt"
-Known Pages within SSL Sites
-------------------------------
-    `for i in ${TMPDIR}/site.information.*; do cat "$i"; done`
-
-EOM
-
-fi
+# Disabled in PAS-19
+#if [ -f ${TMPDIR}/site.information.* ]
+#then
+#
+#cat << EOM > "${REPORTDIR}/ssltraffic.txt"
+#Known Pages within SSL Sites
+#------------------------------
+#    `for i in ${TMPDIR}/site.information.*; do cat "$i"; done`
+#
+#EOM
+#
+#fi
 
 
 # Extract associated IP's
@@ -526,6 +540,13 @@ do
   printf "%s\t%s\t%s\t%s\n" "$type" "$username" "$pass" "HTTP" >> "${REPORTDIR}/observedcredentials.csv"
 
 done
+
+
+# Grab the SSL Paths CSV (PAS-19)
+if [ -e "${TMPDIR}/httpspaths.csv" ]
+then
+    cat "${TMPDIR}/httpspaths.csv" | sort | uniq > "${REPORTDIR}/httpspaths.csv"
+fi
 
 
 # Build the IP/port list (PAS-9)
