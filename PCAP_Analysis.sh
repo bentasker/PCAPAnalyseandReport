@@ -393,6 +393,9 @@ echo "Analysing SSL/TLS traffic"
 tshark -q -r "$PCAP" -Y "ssl.handshake" -T fields $STANDARD_FIELDS \
 -e ssl.handshake.extensions_server_name -e ssl.handshake.ciphersuite > "${TMPDIR}/sslrequests.txt"
 
+echo "Extracting Mail related traffic"
+tshark -q -r "$PCAP" -Y "smtp.req" -T fields $STANDARD_FIELDS \
+-e smtp.req.command -e smtp.req.parameter -e smtp.auth.username -e smtp.auth.password > "${TMPDIR}/mailtransactions.csv"
 
 
 echo "Identifying HTTPS pages from HTTP Referrers"
@@ -590,6 +593,8 @@ do
     echo "$ip," >> "${REPORTDIR}/xmpppeers.csv"
 done
 
+# Handle Mail related traffic
+cat "${TMPDIR}/mailtransactions.csv" > "${REPORTDIR}/mailtransactions.csv"
 
 echo "Done- Reports in ${REPORTDIR}"
 # TODO: Once finished testing, need to tidy the tempdirs away

@@ -77,6 +77,15 @@ Where Match type will be one of the following
 Note that at time of writing, the GA Cookie entries do not use the configured Regex's.
 
 
+mailtransactions.csv
+----------------------
+
+Contains a time ordered list of all SMTP commands observed
+
+Fields are
+
+    Epoch, Source IPv4, Dest IPv4, Source IPv6, Dest IPv6, Source Port, Dest Port, SMTP Command, SMTP Parameter, Username, Password
+
 
 observedcookies.csv  
 ---------------------
