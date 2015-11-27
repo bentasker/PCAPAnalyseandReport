@@ -366,6 +366,7 @@ fi
 
 # This may have been set in config, we use a small default set - as much defined by test data as what's interesting
 INTERESTING_PATHS=${INTERESTING_PATHS:-"^((https:\/\/|http:\/\/)?)(www|np|m|i)\.reddit\.com\/(r|u)\/([^\/]*)|^((https:\/\/|http:\/\/)?)t.co/"}
+PASSIVE_ONLY=${PASSIVE_ONLY:-0}
 
 
 mkdir -p "$TMPDIR"
@@ -508,7 +509,12 @@ sort -n -o "${REPORTDIR}/webtraffic.csv" "${REPORTDIR}/webtraffic.csv"
 for ip in `cat ${TMPDIR}/*requests.txt | awk -F '	' '{print $2}{print $3}{print $4}{print $5}' | sort | uniq`
 do
 
-      PTR=`host "$ip" | tr '\n' ' '`
+      if [ "$PASSIVE_ONLY" == 0 ]
+      then
+	    PTR=`host "$ip" | tr '\n' ' '`
+      else
+	    PTR="Active checks disabled"
+      fi
       printf '%s,"%s",\n' "$ip" "$PTR" >> "${REPORTDIR}/associatedhosts.csv"
 
 done

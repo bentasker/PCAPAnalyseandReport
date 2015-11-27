@@ -39,7 +39,17 @@ The aim of this feature is to allow you to specify specific information you may 
 
 
 
+Passive Checks Only
+---------------------
 
+There aren't currently very many non-passive checks at all, however those at are present could, under certain circumstances, disclose that traffic is being examined. In order to prevent this, checks can be limited to being entirely passive (i.e. information not available within the PCAP isn't used)
 
+To configure this, add the following to *config.sh*
+
+      PASSIVE_ONLY=1
+
+This will disable
+
+* Reverse lookup on associated IPs
 
 
