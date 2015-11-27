@@ -419,10 +419,10 @@ done
 
 
 # Extract interesting referers (PAS-3)
-cat "${TMPDIR}/httprequests.txt" | awk -F'	' -v OFS='\t' '{print $11,"HTTP Referer"}' | egrep -e "$INTERESTING_PATHS" | sort | uniq > "${TMPDIR}/interestingurls.csv"
+cat "${TMPDIR}/httprequests.txt" | awk -F'	' -v OFS='\t' '{print $11,"HTTP Referer", $1}' | egrep -e "$INTERESTING_PATHS" | sort | uniq > "${TMPDIR}/interestingurls.csv"
 
 # Extract interesting URL paths
-cat "${TMPDIR}/httprequests.txt" | awk -F'	' -v OFS='\t' '{print $8$10,"HTTP Request"}' | sed 's/"//g' | egrep -e "$INTERESTING_PATHS" | sort | uniq >> "${TMPDIR}/interestingurls.csv"
+cat "${TMPDIR}/httprequests.txt" | awk -F'	' -v OFS='\t' '{print $8$10,"HTTP Request", $1}' | sed 's/"//g' | egrep -e "$INTERESTING_PATHS" | sort | uniq >> "${TMPDIR}/interestingurls.csv"
 
 
 echo "Looking for XMPP traffic"
@@ -544,6 +544,17 @@ cat "${TMPDIR}/tcpsyns.txt" | awk -F'	' 'length($2) && length($3)&& length($4) &
 cat "${TMPDIR}/interestingurls.csv" | egrep -o -e "$INTERESTING_PATHS" | sort | uniq > "${REPORTDIR}/interestingdomains.csv"
 cat "${TMPDIR}/interestingurls.csv" > "${REPORTDIR}/interestingdomains-full.csv"
 
+# Extract interesting cookies and add to the Domains CSV
+
+# Google Analytics Campaign Cookies
+grep "__utmz" "${REPORTDIR}/observedcookies.csv" | awk -F'	' '{print $2}' | while read -r line
+do
+      ts=$(echo "$line" | egrep -o -e "\.[0-9]+" | sed 's/\.//g' | head -n1)
+      domain=$(echo "$line" | egrep -o -e "utmcsr=([^\|])+" | sed 's/utmcsr=//g')
+      path=$(echo "$line" | egrep -o -e 'utmcct=([^\|])+' | sed 's/utmcct=//g' )
+
+      printf "%s\t%s\t%s\n" "${domain}${path}" "GA Cookie" "$ts" >> "${REPORTDIR}/interestingdomains.csv"
+done
 
 
 # Pull out details of who (if anyone) has been contacted using XMPP
