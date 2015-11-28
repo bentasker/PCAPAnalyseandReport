@@ -364,6 +364,14 @@ then
       source "${MYDIR}/config.sh"
 fi
 
+# Introduced in PAS-23
+if [ -f "./config.sh" ]
+then
+      source "./config.sh"
+fi
+
+
+
 # This may have been set in config, we use a small default set - as much defined by test data as what's interesting
 INTERESTING_PATHS=${INTERESTING_PATHS:-"^((https:\/\/|http:\/\/)?)(www|np|m|i)\.reddit\.com\/(r|u)\/([^\/]*)|^((https:\/\/|http:\/\/)?)t.co/"}
 PASSIVE_ONLY=${PASSIVE_ONLY:-0}

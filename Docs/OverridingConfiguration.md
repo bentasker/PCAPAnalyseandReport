@@ -8,7 +8,7 @@ This documentation details how to override elements of the scripts default confi
 Config File Location
 ----------------------
 
-The configuration file should be called *config.sh* and *must* be located in the same directory as PCAP_Analysis
+The configuration file should be called *config.sh* and *must* either be located in the same directory as PCAP_Analysis or in the current working directory
 
 
 
