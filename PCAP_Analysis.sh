@@ -374,16 +374,21 @@ echo "Starting, using ${TMPDIR} for temp files"
 echo "Processing PCAP"
 
 
-printf "\tExtracting a list of Destination Ports\n"
+#printf "\tExtracting a list of Destination Ports\n"
 # Build a unique list of Dest IP's and Ports (PAS-9) for TCP connections
 # Once PAS-22 is complete this run can probably be removed
-tshark -q -r "$PCAP" -Y "(tcp.flags.syn == 1) && (tcp.flags.ack == 0)" -T fields $STANDARD_FIELDS > "${TMPDIR}/tcpsyns.txt"
+#tshark -q -r "$PCAP" -Y "(tcp.flags.syn == 1) && (tcp.flags.ack == 0)" -T fields $STANDARD_FIELDS > "${TMPDIR}/tcpsyns.txt"
 
 
 # Extract TCP flags - PAS-22
 printf "\tExtracting TCP Flags\n"
 tshark -q -r "$PCAP" -Y "tcp" -T fields $STANDARD_FIELDS \
 -e tcp.flags.ack -e tcp.flags.push -e tcp.flags.reset -e tcp.flags.syn -e tcp.flags.fin > "${TMPDIR}/tcpflags.txt"
+
+# Introduced in PAS-22
+printf "\tExtracting a list of Destination Ports\n"
+grep -P '\t0\t0\t0\t1\t0' "${TMPDIR}/tcpflags.txt" > "${TMPDIR}/tcpsyns.txt"
+
 
 # Grab the low hanging fruit
 printf "\tAnalysing Port 80 Traffic\n"
