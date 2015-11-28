@@ -118,6 +118,24 @@ observedhttpuseragents.csv
 This file contains a sorted and unique list of all user-agents identified in HTTP sessions
 
 
+tcptraffic.csv
+---------------
+
+This file is a CSV containing observed TCP flags in chronological order. Fields are
+
+    Epoch, ipv4 src ip,ipv4 dest ip, ipv6 src ip, ipv6 dest ip,src port, dest port, Flags
+
+Where flags will be FIN, SYN, SYN/ACK etc.
+
+Used correctly, the flags can be used to identify information about the connection they correspond to (for example to identify likely HTTP Keep-alive timeout periods within a HTTPS connection).
+
+Assuming multipurpose fields are not a concern, if desried, this file can safely be merged with webtraffic.csv by doing the following
+
+    cat webtraffic.csv tcptraffic.csv | sort > merged.csv
+
+Field 8 of the new file will either contain an FQDN or the relevant TCP flag.
+
+
 visitedsites.csv  
 ------------------
 

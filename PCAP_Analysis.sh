@@ -376,8 +376,14 @@ echo "Processing PCAP"
 
 printf "\tExtracting a list of Destination Ports\n"
 # Build a unique list of Dest IP's and Ports (PAS-9) for TCP connections
+# Once PAS-22 is complete this run can probably be removed
 tshark -q -r "$PCAP" -Y "(tcp.flags.syn == 1) && (tcp.flags.ack == 0)" -T fields $STANDARD_FIELDS > "${TMPDIR}/tcpsyns.txt"
 
+
+# Extract TCP flags - PAS-22
+printf "\tExtracting TCP Flags\n"
+tshark -q -r "$PCAP" -Y "tcp" -T fields $STANDARD_FIELDS \
+-e tcp.flags.ack -e tcp.flags.push -e tcp.flags.reset -e tcp.flags.syn -e tcp.flags.fin > "${TMPDIR}/tcpflags.txt"
 
 # Grab the low hanging fruit
 printf "\tAnalysing Port 80 Traffic\n"
@@ -507,6 +513,23 @@ sort -n -o "${REPORTDIR}/webtraffic.csv" "${REPORTDIR}/webtraffic.csv"
 #EOM
 #
 #fi
+
+# PAS-22
+printf '\tBuilding TCP Transaction log - tcptraffic.csv\n'
+cat "${TMPDIR}/tcpflags.txt" | while read -r line
+do
+      ts=$(echo "$line" | awk -F '	' '{print $1}')
+      srcip=$(echo "$line" | awk -F '	' '{print $2}')
+      destip=$(echo "$line" | awk -F '	' '{print $3}')
+      srcip6=$(echo "$line" | awk -F '	' '{print $4}')
+      destip6=$(echo "$line" | awk -F '	' '{print $5}')
+      srcport=$(echo "$line" | awk -F '	' '{print $6}')
+      destport=$(echo "$line" | awk -F '	' '{print $7}')
+      flags=$(echo "$line" | awk -F '	' '{print $8$9$10$11$12}'|sed -e 's~10000~ACK~g' -e 's~01000~PSH~g' -e 's~00100~RST~g' -e 's~00010~SYN~g' -e 's~00001~FIN~g' -e 's~11000~PSH/ACK~g' -e 's~10010~SYN/ACK~g' -e 's~10001~FIN/ACK~g')
+
+      printf '%s\t%s\t%s\t%s\t%s\t%s\t%s\t"%s"\n' "$ts" "$srcip" "$destip" "$srcip6" "$destip6" "$srcport" \
+      "$destport" "$flags" >> "${REPORTDIR}/tcptraffic.csv"
+done
 
 printf '\tBuilding list of known IPs\n'
 # Extract associated IP's
