@@ -570,7 +570,9 @@ cat ${TMPDIR}/httprequests.txt | awk -F '	' '{print $12}' | sort | uniq > "${REP
 
 # Built the list of known FQDNs
 printf '\tBuilding FQDN list\n'
-cat ${TMPDIR}/httprequests.txt ${TMPDIR}/sslrequests.txt | awk -F '	' '{print $8}' | sort | uniq > "${REPORTDIR}/visitedsites.csv"
+cat ${TMPDIR}/httprequests.txt | awk -F '	' -v OFS='\t' '{print $8,"HostHeader"}' | sort | uniq > "${REPORTDIR}/visitedsites.csv"
+cat ${TMPDIR}/sslrequests.txt | awk -F '	' -v OFS='\t'  '{print $8,"SNI"}' | sort | uniq >> "${REPORTDIR}/visitedsites.csv"
+
 
 # Extract any identified username/passwords
 printf '\tBuilding Credential List\n'

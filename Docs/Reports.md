@@ -139,7 +139,10 @@ Field 8 of the new file will either contain an FQDN or the relevant TCP flag.
 visitedsites.csv  
 ------------------
 
-This file contains sorted and unique FQDNs for all sites visited via either HTTP or HTTPS. It currently contains one field - FQDN - but may later be updated to include an indicator as to whether HTTP or HTTPS was used.
+This file contains sorted and unique FQDNs for all sites visited via either HTTP or HTTPS. It currently contains two fields
+
+* FQDN
+* Observed Source (e.g. HTTP Host Header, SNI Handshake etc)
 
 
 webtraffic.csv  
