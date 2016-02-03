@@ -53,3 +53,12 @@ This will disable
 * Reverse lookup on associated IPs
 
 
+
+SSL Ports 
+-----------
+
+[PAS-27](http://projects.bentasker.co.uk/jira_projects/browse/PAS-27.html) introduced the ability to force connections to specific ports to be assumed as SSL. The dissectors do a good job of identifying SSL traffic, but will miss some where non-standard ports have been used. If a port number is known, a value can be set for it within the script configuration
+
+    SSLPorts="1193 1473"
+
+Ports should be space seperated and will not prevent analysis of known standard ports (e.g. 443). Currently this is only applied for TCP connections

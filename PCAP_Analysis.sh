@@ -376,6 +376,15 @@ INTERESTING_PATHS=${INTERESTING_PATHS:-"^((https:\/\/|http:\/\/)?)(www|np|m|i)\.
 PASSIVE_ONLY=${PASSIVE_ONLY:-0}
 STANDARD_FIELDS="-e frame.time_epoch -e ip.src -e ip.dst -e ipv6.src -e ipv6.dst -e tcp.srcport -e tcp.dstport"
 
+# Build the forced SSL dissector argument (PAS-27)
+SSLPorts=${SSLPorts:-"9035 12194 9001"}
+SSLARGS=''
+for i in $SSLPorts 
+do
+      SSLARGS+="-d tcp.port==$i,ssl "
+done
+
+echo $SSLARGS
 mkdir -p "$TMPDIR"
 echo "Starting, using ${TMPDIR} for temp files"
 echo "Processing PCAP"
@@ -400,7 +409,7 @@ grep "https://" "${TMPDIR}/httprequests.txt" > "${TMPDIR}/httpsreferers.txt"
 
 printf "\tAnalysing SSL/TLS traffic\n"
 # Extract information from the SSL/TLS sessions we can see
-tshark -q -r "$PCAP" -Y "ssl.handshake" -T fields $STANDARD_FIELDS \
+tshark -q -r "$PCAP" $SSLARGS -Y "ssl.handshake" -T fields $STANDARD_FIELDS \
 -e ssl.handshake.extensions_server_name -e ssl.handshake.ciphersuite -e x509sat.printableString > "${TMPDIR}/sslrequests.txt"
 
 printf "\tExtracting Mail related traffic\n"
