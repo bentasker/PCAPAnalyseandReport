@@ -420,11 +420,11 @@ printf "\tIdentifying HTTPS pages from HTTP Referrers\n"
 # Extract HTTPS referrers from Port 80 requests and gather identified URL paths
 #
 # The earlier grep was a broad sweep, we need to make sure the https is actually in the referer column
-cat "${TMPDIR}/httpsreferers.txt" | awk -F '	' '{print $11}' | egrep -o 'https:\/\/([^\/]*)' | sort | uniq | sed 's~https://~~g' | while read -r sslhost
+cat "${TMPDIR}/httpsreferers.txt" | awk -F '\t' '{print $11}' | egrep -o 'https:\/\/([^\/]*)' | sort | uniq | sed 's~https://~~g' | while read -r sslhost
 do
 
       # Extract line numbers for all entries that match our SSL host
-      lines=`cat "${TMPDIR}/httpsreferers.txt" | awk -F '	' '{print $11}' | grep -n "https://$sslhost"`
+      lines=`cat "${TMPDIR}/httpsreferers.txt" | awk -F '\t' '{print $11}' | grep -n "https://$sslhost"`
 
       # Check we got some results 
       linecount=`echo -n "${lines}" |wc -l`
@@ -445,7 +445,7 @@ do
       for lineno in `echo "${lines}" | cut -d\: -f1`
       do
 	    # This time we want the full referrer string, path and all
-	    refererstring=$(sed -n ${lineno}p "${TMPDIR}/httpsreferers.txt" | awk -F '	' '{print $11}')
+	    refererstring=$(sed -n ${lineno}p "${TMPDIR}/httpsreferers.txt" | awk -F '\t' '{print $11}')
 
 	    # Update the (new) temp file
 	    printf '"%s"\t"%s"\n' "$sslhost" "$refererstring" >> "${TMPDIR}/httpspaths.csv"
@@ -454,11 +454,11 @@ done
 
 printf "\tLooking for interesting referers\n"
 # Extract interesting referers (PAS-3)
-cat "${TMPDIR}/httprequests.txt" | awk -F'	' -v OFS='\t' '{print $11,"HTTP Referer", $1}' | egrep -e "$INTERESTING_PATHS" | sort | uniq > "${TMPDIR}/interestingurls.csv"
+cat "${TMPDIR}/httprequests.txt" | awk -F'\t' -v OFS='\t' '{print $11,"HTTP Referer", $1}' | egrep -e "$INTERESTING_PATHS" | sort | uniq > "${TMPDIR}/interestingurls.csv"
 
 printf "\tLooking for interesting paths\n"
 # Extract interesting URL paths
-cat "${TMPDIR}/httprequests.txt" | awk -F'	' -v OFS='\t' '{print $8$10,"HTTP Request", $1}' | sed 's/"//g' | egrep -e "$INTERESTING_PATHS" | sort | uniq >> "${TMPDIR}/interestingurls.csv"
+cat "${TMPDIR}/httprequests.txt" | awk -F'\t' -v OFS='\t' '{print $8$10,"HTTP Request", $1}' | sed 's/"//g' | egrep -e "$INTERESTING_PATHS" | sort | uniq >> "${TMPDIR}/interestingurls.csv"
 
 
 printf "\tLooking for XMPP traffic\n"
@@ -474,20 +474,20 @@ mkdir $REPORTDIR
 printf "\tProcessing webtraffic.csv\n"
 cat ${TMPDIR}/httprequests.txt | while read -r line
 do
-      ts=$(echo "$line" | awk -F '	' '{print $1}')
-      srcip=$(echo "$line" | awk -F '	' '{print $2}')
-      destip=$(echo "$line" | awk -F '	' '{print $3}')
-      srcip6=$(echo "$line" | awk -F '	' '{print $4}')
-      destip6=$(echo "$line" | awk -F '	' '{print $5}')
-      srcport=$(echo "$line" | awk -F '	' '{print $6}')
-      destport=$(echo "$line" | awk -F '	' '{print $7}')
-      fqdn=$(echo "$line" | awk -F '	' '{print $8}')
-      reqmethod=$(echo "$line" | awk -F '	' '{print $9}')
-      requri=$(echo "$line" | awk -F '	' '{print $10}')
-      referer=$(echo "$line" | awk -F '	' '{print $11}')
-      useragent=$(echo "$line" | awk -F '	' '{print $12}')
-      cookie=$(echo "$line" | awk -F '	' '{print $13}')
-      auth=$(echo "$line" | awk -F '	' '{print $14}')
+      ts=$(echo "$line" | awk -F '\t' '{print $1}')
+      srcip=$(echo "$line" | awk -F '\t' '{print $2}')
+      destip=$(echo "$line" | awk -F '\t' '{print $3}')
+      srcip6=$(echo "$line" | awk -F '\t' '{print $4}')
+      destip6=$(echo "$line" | awk -F '\t' '{print $5}')
+      srcport=$(echo "$line" | awk -F '\t' '{print $6}')
+      destport=$(echo "$line" | awk -F '\t' '{print $7}')
+      fqdn=$(echo "$line" | awk -F '\t' '{print $8}')
+      reqmethod=$(echo "$line" | awk -F '\t' '{print $9}')
+      requri=$(echo "$line" | awk -F '\t' '{print $10}')
+      referer=$(echo "$line" | awk -F '\t' '{print $11}')
+      useragent=$(echo "$line" | awk -F '\t' '{print $12}')
+      cookie=$(echo "$line" | awk -F '\t' '{print $13}')
+      auth=$(echo "$line" | awk -F '\t' '{print $14}')
 
       printf '%s\t%s\t%s\t%s\t%s\t%s\t%s\t"%s"\t"%s"\t"%s"\t"%s"\t"%s"\t%s\t\t"%s"\t\n' "$ts" "$srcip" "$destip" "$srcip6" "$destip6" "$srcport" \
       "$destport" "$fqdn" "$reqmethod" "$requri" "$referer" "$useragent" "$cookie" "$auth" >> "${REPORTDIR}/webtraffic.csv"
@@ -497,16 +497,16 @@ done
 # Add SSL/TLS traffic to webtraffic.csv
 cat ${TMPDIR}/sslrequests.txt | while read -r line
 do
-      ts=$(echo "$line" | awk -F '	' '{print $1}')
-      srcip=$(echo "$line" | awk -F '	' '{print $2}')
-      destip=$(echo "$line" | awk -F '	' '{print $3}')
-      srcip6=$(echo "$line" | awk -F '	' '{print $4}')
-      destip6=$(echo "$line" | awk -F '	' '{print $5}')
-      srcport=$(echo "$line" | awk -F '	' '{print $6}')
-      destport=$(echo "$line" | awk -F '	' '{print $7}')
-      sniname=$(echo "$line" | awk -F '	' '{print $8}')
-      ciphersuites=$(humanise_ciphers `echo "$line" | awk -F '	' '{print $9}'`)
-      certnames=$(echo "$line" | awk -F '	' '{print $10}' | sed 's/,/\n/g')
+      ts=$(echo "$line" | awk -F '\t' '{print $1}')
+      srcip=$(echo "$line" | awk -F '\t' '{print $2}')
+      destip=$(echo "$line" | awk -F '\t' '{print $3}')
+      srcip6=$(echo "$line" | awk -F '\t' '{print $4}')
+      destip6=$(echo "$line" | awk -F '\t' '{print $5}')
+      srcport=$(echo "$line" | awk -F '\t' '{print $6}')
+      destport=$(echo "$line" | awk -F '\t' '{print $7}')
+      sniname=$(echo "$line" | awk -F '\t' '{print $8}')
+      ciphersuites=$(humanise_ciphers `echo "$line" | awk -F '\t' '{print $9}'`)
+      certnames=$(echo "$line" | awk -F '\t' '{print $10}' | sed 's/,/\n/g')
       printf '%s\t%s\t%s\t%s\t%s\t%s\t%s\t"%s"\t\t\t\t\t\t"%s"\t"%s"\t\n' "$ts" "$srcip" "$destip" "$srcip6" "$destip6" "$srcport" \
       "$destport" "$sniname" "$sniname" "$ciphersuites" >> "${REPORTDIR}/webtraffic.csv"
 
@@ -536,14 +536,14 @@ sort -n -o "${REPORTDIR}/webtraffic.csv" "${REPORTDIR}/webtraffic.csv"
 printf '\tBuilding TCP Transaction log - tcptraffic.csv\n'
 cat "${TMPDIR}/tcpflags.txt" | while read -r line
 do
-      ts=$(echo "$line" | awk -F '	' '{print $1}')
-      srcip=$(echo "$line" | awk -F '	' '{print $2}')
-      destip=$(echo "$line" | awk -F '	' '{print $3}')
-      srcip6=$(echo "$line" | awk -F '	' '{print $4}')
-      destip6=$(echo "$line" | awk -F '	' '{print $5}')
-      srcport=$(echo "$line" | awk -F '	' '{print $6}')
-      destport=$(echo "$line" | awk -F '	' '{print $7}')
-      flags=$(echo "$line" | awk -F '	' '{print $8$9$10$11$12}'|sed -e 's~10000~ACK~g' -e 's~01000~PSH~g' -e 's~00100~RST~g' -e 's~00010~SYN~g' -e 's~00001~FIN~g' -e 's~11000~PSH/ACK~g' -e 's~10010~SYN/ACK~g' -e 's~10001~FIN/ACK~g')
+      ts=$(echo "$line" | awk -F '\t' '{print $1}')
+      srcip=$(echo "$line" | awk -F '\t' '{print $2}')
+      destip=$(echo "$line" | awk -F '\t' '{print $3}')
+      srcip6=$(echo "$line" | awk -F '\t' '{print $4}')
+      destip6=$(echo "$line" | awk -F '\t' '{print $5}')
+      srcport=$(echo "$line" | awk -F '\t' '{print $6}')
+      destport=$(echo "$line" | awk -F '\t' '{print $7}')
+      flags=$(echo "$line" | awk -F '\t' '{print $8$9$10$11$12}'|sed -e 's~10000~ACK~g' -e 's~01000~PSH~g' -e 's~00100~RST~g' -e 's~00010~SYN~g' -e 's~00001~FIN~g' -e 's~11000~PSH/ACK~g' -e 's~10010~SYN/ACK~g' -e 's~10001~FIN/ACK~g')
 
       printf '%s\t%s\t%s\t%s\t%s\t%s\t%s\t"%s"\n' "$ts" "$srcip" "$destip" "$srcip6" "$destip6" "$srcport" \
       "$destport" "$flags" >> "${REPORTDIR}/tcptraffic.csv"
@@ -551,7 +551,7 @@ done
 
 printf '\tBuilding list of known IPs\n'
 # Extract associated IP's
-for ip in `cat ${TMPDIR}/*requests.txt | awk -F '	' '{print $2}{print $3}{print $4}{print $5}' | sort | uniq`
+for ip in `cat ${TMPDIR}/*requests.txt | awk -F '\t' '{print $2}{print $3}{print $4}{print $5}' | sort | uniq`
 do
 
       if [ "$PASSIVE_ONLY" == 0 ]
@@ -566,17 +566,17 @@ done
 
 # Extract cookies
 printf '\tBuilding cookie list\n'
-cat ${TMPDIR}/httprequests.txt | awk -F '	' '{print $13}' | sed 's~; ~\n~g' | sed 's/=/\t/' |sort | uniq > "${REPORTDIR}/observedcookies.csv"
+cat ${TMPDIR}/httprequests.txt | awk -F '\t' '{print $13}' | sed 's~; ~\n~g' | sed 's/=/\t/' |sort | uniq > "${REPORTDIR}/observedcookies.csv"
 
 # Extract User-agents
 printf '\tBuilding User-agent list\n'
-cat ${TMPDIR}/httprequests.txt | awk -F '	' '{print $12}' | sort | uniq > "${REPORTDIR}/observedhttpuseragents.csv"
+cat ${TMPDIR}/httprequests.txt | awk -F '\t' '{print $12}' | sort | uniq > "${REPORTDIR}/observedhttpuseragents.csv"
 
 # Built the list of known FQDNs
 printf '\tBuilding FQDN list\n'
-cat ${TMPDIR}/httprequests.txt | awk -F '	' -v OFS='\t' '{print $8,"HostHeader"}' | sort | uniq > "${TMPDIR}/visitedsites.csv"
-cat ${TMPDIR}/sslrequests.txt | awk -F '	' -v OFS='\t'  '{print $8,"SNI"}' | sort | uniq >> "${TMPDIR}/visitedsites.csv"
-cat ${TMPDIR}/certnames.csv | awk -F '	' -v OFS='\t' '{print $1,"CertificateName"}' | sort | uniq >> "${TMPDIR}/visitedsites.csv"
+cat ${TMPDIR}/httprequests.txt | awk -F '\t' -v OFS='\t' '{print $8,"HostHeader"}' | sort | uniq > "${TMPDIR}/visitedsites.csv"
+cat ${TMPDIR}/sslrequests.txt | awk -F '\t' -v OFS='\t'  '{print $8,"SNI"}' | sort | uniq >> "${TMPDIR}/visitedsites.csv"
+cat ${TMPDIR}/certnames.csv | awk -F '\t' -v OFS='\t' '{print $1,"CertificateName"}' | sort | uniq >> "${TMPDIR}/visitedsites.csv"
 
 # Sort and put into the reports directory
 cat "${TMPDIR}/visitedsites.csv" | sort > "${REPORTDIR}/visitedsites.csv"
@@ -586,13 +586,13 @@ if [ "$PASSIVE_ONLY" == 0 ]
 then
       printf '\tLooking for Unresolvable FQDNs\n'
 
-      cat "${REPORTDIR}/visitedsites.csv" | awk -F'	' '{print $1}' | egrep -v -e "^$" | while read -r domain
+      cat "${REPORTDIR}/visitedsites.csv" | awk -F'\t' '{print $1}' | egrep -v -e "^$" | while read -r domain
       do
 	    host "$domain" 2>&1 > /dev/null
 	    if [ "$?" == "1" ]
 	    then
 		  # Domain did not resolve
-		  grep "$domain" "${TMPDIR}/sslrequests.txt" | awk -F '	' -v OFS='\t' '{print $2,$3,$4,$5,$6,$7,$8,$10}' | sort | uniq >> "${REPORTDIR}/unresolvabledomains.csv"
+		  grep "$domain" "${TMPDIR}/sslrequests.txt" | awk -F '\t' -v OFS='\t' '{print $2,$3,$4,$5,$6,$7,$8,$10}' | sort | uniq >> "${REPORTDIR}/unresolvabledomains.csv"
 	    fi
 
       done
@@ -604,12 +604,12 @@ fi
 
 # Extract any identified username/passwords
 printf '\tBuilding Credential List\n'
-cat ${TMPDIR}/httprequests.txt | awk -F '	' '{print $14}' | awk 'NF' | while read -r line
+cat ${TMPDIR}/httprequests.txt | awk -F '\t' '{print $14}' | awk 'NF' | while read -r line
 do
-  type=$(echo "$line" | awk -F' ' '{print $1}')
+  type=$(echo "$line" | awk -F'\t' '{print $1}')
   if [ "$type" == "Basic" ]
   then
-      value=$(echo -n "$line" | awk -F' ' '{print $2}' | base64 -d)
+      value=$(echo -n "$line" | awk -F'\t' '{print $2}' | base64 -d)
       username=$(echo "$value" | cut -d\: -f1)
       pass=$(echo "$value" | cut -d\: -f2)
   else
@@ -633,13 +633,13 @@ fi
 # Build the IP/port list (PAS-9)
 printf '\tBuilding IP/Port list - dest-ip-ports.csv \n'
 # Start with native IPv4
-cat "${TMPDIR}/tcpsyns.txt" | awk -F'	' 'length($2) && length($3)&& !length($4) && !length($5)' | awk -F '	' -v OFS='\t' '{print $3,$7,"N","TCP"}' | sort | uniq > "${REPORTDIR}/dest-ip-ports.csv"
+cat "${TMPDIR}/tcpsyns.txt" | awk -F'\t' 'length($2) && length($3)&& !length($4) && !length($5)' | awk -F '\t' -v OFS='\t' '{print $3,$7,"N","TCP"}' | sort | uniq > "${REPORTDIR}/dest-ip-ports.csv"
 # Native IPv6
-cat "${TMPDIR}/tcpsyns.txt" | awk -F'	' '!length($2) && !length($3)&& length($4) && length($5)' | awk -F '	' -v OFS='\t' '{print $5,$7,"N","TCP"}' | sort | uniq >> "${REPORTDIR}/dest-ip-ports.csv"
+cat "${TMPDIR}/tcpsyns.txt" | awk -F'\t' '!length($2) && !length($3)&& length($4) && length($5)' | awk -F '\t' -v OFS='\t' '{print $5,$7,"N","TCP"}' | sort | uniq >> "${REPORTDIR}/dest-ip-ports.csv"
 # Tunnelled IPv6
-cat "${TMPDIR}/tcpsyns.txt" | awk -F'	' 'length($2) && length($3)&& length($4) && length($5)' | awk -F '	' -v OFS='\t' '{print $5,$7,"Y","TCP"}' | sort | uniq >> "${REPORTDIR}/dest-ip-ports.csv"
+cat "${TMPDIR}/tcpsyns.txt" | awk -F'\t' 'length($2) && length($3)&& length($4) && length($5)' | awk -F '\t' -v OFS='\t' '{print $5,$7,"Y","TCP"}' | sort | uniq >> "${REPORTDIR}/dest-ip-ports.csv"
 # IPv4 endpoints for IPv6 Tunnels
-cat "${TMPDIR}/tcpsyns.txt" | awk -F'	' 'length($2) && length($3)&& length($4) && length($5)' | awk -F '	' -v OFS='\t' '{print $3,"","T","TCP"}' | sort | uniq >> "${REPORTDIR}/dest-ip-ports.csv"
+cat "${TMPDIR}/tcpsyns.txt" | awk -F'\t' 'length($2) && length($3)&& length($4) && length($5)' | awk -F '\t' -v OFS='\t' '{print $3,"","T","TCP"}' | sort | uniq >> "${REPORTDIR}/dest-ip-ports.csv"
 
 
 # Create the interesting Referrers CSV
@@ -651,7 +651,7 @@ cat "${TMPDIR}/interestingurls.csv" > "${REPORTDIR}/interestingdomains-full.csv"
 
 # Google Analytics Campaign Cookies
 printf '\tExtracting interesting cookies\n'
-grep "__utmz" "${REPORTDIR}/observedcookies.csv" | awk -F'	' '{print $2}' | while read -r line
+grep "__utmz" "${REPORTDIR}/observedcookies.csv" | awk -F'\t' '{print $2}' | while read -r line
 do
       ts=$(echo "$line" | egrep -o -e "\.[0-9]+" | sed 's/\.//g' | head -n1)
       domain=$(echo "$line" | egrep -o -e "utmcsr=([^\|])+" | sed 's/utmcsr=//g')
@@ -663,7 +663,7 @@ done
 
 # Pull out details of who (if anyone) has been contacted using XMPP
 printf '\tBuilding xmpppeers.csv\n'
-for ip in `cat "${TMPDIR}/xmpprequests.txt" | awk -F '	' '{print $2}{print $3}{print $4}{print $5}' | sort | uniq`
+for ip in `cat "${TMPDIR}/xmpprequests.txt" | awk -F '\t' '{print $2}{print $3}{print $4}{print $5}' | sort | uniq`
 do
     echo "$ip," >> "${REPORTDIR}/xmpppeers.csv"
 done
