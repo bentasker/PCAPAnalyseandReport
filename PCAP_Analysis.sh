@@ -357,7 +357,6 @@ line=$1
 }
 
 
-
 # Load the config, if it exists
 if [ -f "${MYDIR}/config.sh" ]
 then
@@ -565,7 +564,6 @@ do
 
 done
 
-
 # Extract cookies
 printf '\tBuilding cookie list\n'
 cat ${TMPDIR}/httprequests.txt | awk -F '	' '{print $13}' | sed 's~; ~\n~g' | sed 's/=/\t/' |sort | uniq > "${REPORTDIR}/observedcookies.csv"
@@ -582,6 +580,26 @@ cat ${TMPDIR}/certnames.csv | awk -F '	' -v OFS='\t' '{print $1,"CertificateName
 
 # Sort and put into the reports directory
 cat "${TMPDIR}/visitedsites.csv" | sort > "${REPORTDIR}/visitedsites.csv"
+
+# Implemented for PAS-26
+if [ "$PASSIVE_ONLY" == 0 ]
+then
+      printf '\tLooking for Unresolvable FQDNs\n'
+
+      cat "${REPORTDIR}/visitedsites.csv" | awk -F'	' '{print $1}' | egrep -v -e "^$" | while read -r domain
+      do
+	    host "$domain" 2>&1 > /dev/null
+	    if [ "$?" == "1" ]
+	    then
+		  # Domain did not resolve
+		  grep "$domain" "${TMPDIR}/sslrequests.txt" | awk -F '	' -v OFS='\t' '{print $2,$3,$4,$5,$6,$7,$8,$10}' | sort | uniq >> "${REPORTDIR}/unresolvabledomains.csv"
+	    fi
+
+      done
+
+else
+      printf '\tNot Looking for Unresolvable FQDNs - PASSIVE_ONLY set\n'
+fi
 
 
 # Extract any identified username/passwords

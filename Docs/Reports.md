@@ -136,6 +136,17 @@ Assuming multipurpose fields are not a concern, if desried, this file can safely
 Field 8 of the new file will either contain an FQDN or the relevant TCP flag.
 
 
+unresolvabledomains.csv
+-------------------------
+
+This file is a CSV containing traffic data for any FQDN that was observed but could not be resolved (suggesting either a non-advertised service or connection to a Tor-like service)
+
+Fields are
+
+    IPv4 src ip, ipv4 dest ip, ipv6 src ip, ipv6 dest ip, src port, dest port, SNI Name, Certificate names
+
+The information provided is still limited, but is currently being developed under [PAS-26](http://projects.bentasker.co.uk/jira_projects/browse/PAS-26.html)
+
 visitedsites.csv  
 ------------------
 
