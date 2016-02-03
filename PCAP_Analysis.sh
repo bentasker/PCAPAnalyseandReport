@@ -380,13 +380,6 @@ mkdir -p "$TMPDIR"
 echo "Starting, using ${TMPDIR} for temp files"
 echo "Processing PCAP"
 
-
-#printf "\tExtracting a list of Destination Ports\n"
-# Build a unique list of Dest IP's and Ports (PAS-9) for TCP connections
-# Once PAS-22 is complete this run can probably be removed
-#tshark -q -r "$PCAP" -Y "(tcp.flags.syn == 1) && (tcp.flags.ack == 0)" -T fields $STANDARD_FIELDS > "${TMPDIR}/tcpsyns.txt"
-
-
 # Extract TCP flags - PAS-22
 printf "\tExtracting TCP Flags\n"
 tshark -q -r "$PCAP" -Y "tcp" -T fields $STANDARD_FIELDS \
@@ -432,14 +425,6 @@ do
       then
 	  continue # This should never happen, but we don't want to create an empty temp file
       fi
-
-      # Disabled in PAS-19
-      #echo "$sslhost" > "${TMPDIR}/site.information.$sslhost"
-      #echo "" >> "${TMPDIR}/site.information.$sslhost"
-      #for lineno in `echo "${lines}" | cut -d\: -f1`
-      #do
-      #		sed -n ${lineno}p "${TMPDIR}/httpsreferers.txt" >> "${TMPDIR}/site.information.$sslhost"
-      #done
 
       # cycle through the entries
       for lineno in `echo "${lines}" | cut -d\: -f1`
@@ -518,19 +503,6 @@ done
 
 # Sort the entries
 sort -n -o "${REPORTDIR}/webtraffic.csv" "${REPORTDIR}/webtraffic.csv"
-
-# Disabled in PAS-19
-#if [ -f ${TMPDIR}/site.information.* ]
-#then
-#
-#cat << EOM > "${REPORTDIR}/ssltraffic.txt"
-#Known Pages within SSL Sites
-#------------------------------
-#    `for i in ${TMPDIR}/site.information.*; do cat "$i"; done`
-#
-#EOM
-#
-#fi
 
 # PAS-22
 printf '\tBuilding TCP Transaction log - tcptraffic.csv\n'
