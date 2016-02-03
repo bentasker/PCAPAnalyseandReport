@@ -409,7 +409,7 @@ grep "https://" "${TMPDIR}/httprequests.txt" > "${TMPDIR}/httpsreferers.txt"
 printf "\tAnalysing SSL/TLS traffic\n"
 # Extract information from the SSL/TLS sessions we can see
 tshark -q -r "$PCAP" -Y "ssl.handshake" -T fields $STANDARD_FIELDS \
--e ssl.handshake.extensions_server_name -e ssl.handshake.ciphersuite > "${TMPDIR}/sslrequests.txt"
+-e ssl.handshake.extensions_server_name -e ssl.handshake.ciphersuite -e x509sat.printableString > "${TMPDIR}/sslrequests.txt"
 
 printf "\tExtracting Mail related traffic\n"
 tshark -q -r "$PCAP" -Y "smtp.req" -T fields $STANDARD_FIELDS \
@@ -507,8 +507,14 @@ do
       destport=$(echo "$line" | awk -F '	' '{print $7}')
       sniname=$(echo "$line" | awk -F '	' '{print $8}')
       ciphersuites=$(humanise_ciphers `echo "$line" | awk -F '	' '{print $9}'`)
+      certnames=$(echo "$line" | awk -F '	' '{print $10}' | sed 's/,/\n/g')
       printf '%s\t%s\t%s\t%s\t%s\t%s\t%s\t"%s"\t\t\t\t\t\t"%s"\t"%s"\t\n' "$ts" "$srcip" "$destip" "$srcip6" "$destip6" "$srcport" \
       "$destport" "$sniname" "$sniname" "$ciphersuites" >> "${REPORTDIR}/webtraffic.csv"
+
+      if [ ! "$certnames" == "" ]
+      then
+	    printf "%s\t\n" "${certnames}" >> ${TMPDIR}/certnames.csv
+      fi
 done
 
 # Sort the entries
@@ -570,8 +576,12 @@ cat ${TMPDIR}/httprequests.txt | awk -F '	' '{print $12}' | sort | uniq > "${REP
 
 # Built the list of known FQDNs
 printf '\tBuilding FQDN list\n'
-cat ${TMPDIR}/httprequests.txt | awk -F '	' -v OFS='\t' '{print $8,"HostHeader"}' | sort | uniq > "${REPORTDIR}/visitedsites.csv"
-cat ${TMPDIR}/sslrequests.txt | awk -F '	' -v OFS='\t'  '{print $8,"SNI"}' | sort | uniq >> "${REPORTDIR}/visitedsites.csv"
+cat ${TMPDIR}/httprequests.txt | awk -F '	' -v OFS='\t' '{print $8,"HostHeader"}' | sort | uniq > "${TMPDIR}/visitedsites.csv"
+cat ${TMPDIR}/sslrequests.txt | awk -F '	' -v OFS='\t'  '{print $8,"SNI"}' | sort | uniq >> "${TMPDIR}/visitedsites.csv"
+cat ${TMPDIR}/certnames.csv | awk -F '	' -v OFS='\t' '{print $1,"CertificateName"}' | sort | uniq >> "${TMPDIR}/visitedsites.csv"
+
+# Sort and put into the reports directory
+cat "${TMPDIR}/visitedsites.csv" | sort > "${REPORTDIR}/visitedsites.csv"
 
 
 # Extract any identified username/passwords
